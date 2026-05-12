@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════
+   EDITOR HEADER + VIEW MODE
+   ═══════════════════════════════════════════════════ */
+
+.editor-header {
+  position: relative; z-index: 30;
+  background: rgba(12,12,16,.97);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 52px;
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-muted);
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  transition: all .15s; border: none; background: none;
+  font-family: 'DM Mono', monospace;
+}
+.back-btn:hover { color: var(--text); background: var(--surface2); }
+
+.map-title-input {
+  font-family: 'Fraunces', serif;
+  font-size: 18px; font-weight: 700; font-style: italic;
+  color: var(--text); background: none; border: none; outline: none;
+  letter-spacing: -.3px; min-width: 40px; max-width: 320px;
+}
+.map-title-input::placeholder { color: var(--text-muted); }
+
+.header-tools { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+
+#edit-tools { display: flex; gap: 6px; align-items: center; }
+
+.tool-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 7px;
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text-muted);
+  transition: all .15s; white-space: nowrap;
+}
+.tool-btn:hover  { border-color: var(--border2); color: var(--text); }
+.tool-btn.active { background: rgba(124,109,255,.15); border-color: var(--accent); color: var(--accent); }
+
+/* ── View mode button ── */
+.view-mode-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 7px; font-size: 11px;
+  font-family: 'DM Mono', monospace; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text-muted); transition: all .15s; white-space: nowrap; letter-spacing: .3px;
+}
+.view-mode-btn:hover   { border-color: var(--border2); color: var(--text); }
+.view-mode-btn.viewing { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.4); color: var(--success); }
+
+/* ── View mode: hide all editing UI ── */
+body.view-mode .node           { cursor: default !important; pointer-events: none; }
+body.view-mode .node-actions   { display: none !important; }
+body.view-mode .node-add-item  { display: none !important; }
+body.view-mode .del-item       { display: none !important; }
+body.view-mode [contenteditable] { pointer-events: none; cursor: default; }
+body.view-mode .canvas-wrap    { cursor: default; }
+body.view-mode #edit-tools     { opacity: 0; pointer-events: none; }
+body.view-mode .add-cat-btn    { display: none; }
+body.view-mode .cat-name-input { pointer-events: none; }
+body.view-mode .cat-del-btn    { display: none; }
+body.view-mode .cat-swatch     { pointer-events: none; cursor: default; }
+body.view-mode .desc-textarea  { pointer-events: none; border-color: transparent; background: transparent; resize: none; }
+body.view-mode .map-title-input { pointer-events: none; }
+body.view-mode .panel-header   { pointer-events: none; }
+
+.view-mode-banner {
+  display: none; position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.3);
+  border-radius: 10px; padding: 9px 20px;
+  font-size: 11px; color: var(--success);
+  z-index: 40; letter-spacing: .3px; pointer-events: none;
+}
+body.view-mode .view-mode-banner { display: block; }
+
+/* ── Controls panel text ── */
+.controls-list {
+  font-size: 10px; color: var(--text-muted); line-height: 2.1;
+}

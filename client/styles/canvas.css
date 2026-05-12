@@ -1,0 +1,106 @@
+/* ═══════════════════════════════════════════════════
+   CANVAS + NODE CARDS
+   ═══════════════════════════════════════════════════ */
+
+.canvas-wrap {
+  flex: 1; position: relative; overflow: hidden; z-index: 1;
+  transition: margin-right .28s cubic-bezier(.4,0,.2,1);
+}
+.canvas-wrap.arrow-mode { cursor: crosshair; }
+
+body.chat-open #canvasWrap { margin-right: 380px; }
+
+.canvas {
+  position: absolute;
+  width: 4000px; height: 3000px;
+  transform-origin: 0 0;
+}
+
+svg.connections {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; overflow: visible;
+}
+
+/* ── Node cards ── */
+.node {
+  position: absolute; border-radius: 11px; border: 1px solid;
+  cursor: grab; user-select: none;
+  min-width: 180px; max-width: 240px;
+}
+.node.dragging   { cursor: grabbing; z-index: 500 !important; transition: none !important; }
+.node.connect-src  { box-shadow: 0 0 0 3px var(--accent)  !important; z-index: 200; }
+.node.connect-hover { box-shadow: 0 0 0 3px var(--success) !important; }
+
+.node-header {
+  padding: 9px 13px 7px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; gap: 8px;
+  border-radius: 11px 11px 0 0;
+}
+.node-title-el {
+  font-family: 'Fraunces', serif; font-size: 13px;
+  font-weight: 700; letter-spacing: -.2px;
+  flex: 1; outline: none; background: none; border: none;
+  color: inherit; cursor: text; width: 100%;
+}
+.node-tag {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px;
+  letter-spacing: .5px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+}
+.node-root-badge {
+  font-size: 8px; letter-spacing: 1px; padding: 2px 6px;
+  background: rgba(124,109,255,.2); border: 1px solid rgba(124,109,255,.3);
+  border-radius: 10px; color: var(--accent); margin-left: auto;
+}
+
+.node-body { padding: 8px 13px 10px; }
+.node-item-wrap { display: flex; align-items: baseline; gap: 4px; }
+.node-item {
+  font-size: 10px; color: rgba(255,255,255,.45);
+  padding: 2px 0; line-height: 1.5;
+  outline: none; background: none; border: none;
+  width: 100%; cursor: text; font-family: 'DM Mono', monospace;
+}
+.node-item:focus { color: rgba(255,255,255,.75); }
+
+.node-add-item {
+  font-size: 9px; color: var(--text-muted);
+  cursor: pointer; padding: 2px 0; letter-spacing: .3px;
+  opacity: 0; transition: opacity .15s;
+}
+.node:hover .node-add-item { opacity: 1; }
+.node-add-item:hover { color: var(--accent); }
+
+/* Hover action buttons that float above the card */
+.node-actions {
+  position: absolute; top: -14px; right: 8px;
+  display: none; gap: 4px; z-index: 200;
+}
+.node:hover .node-actions { display: flex; }
+.node-action-btn {
+  font-size: 10px; padding: 3px 7px; border-radius: 5px;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text-muted); cursor: pointer;
+  transition: all .12s; font-family: 'DM Mono', monospace;
+}
+.node-action-btn:hover     { color: var(--text); border-color: var(--accent); }
+.node-action-btn.del:hover { color: var(--danger); border-color: rgba(255,68,102,.4); }
+
+/* Arrow context menu */
+.arrow-menu {
+  position: fixed; background: var(--surface);
+  border: 1px solid var(--border2); border-radius: 10px;
+  padding: 4px; z-index: 300;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5); min-width: 140px;
+}
+.arrow-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 7px;
+  font-size: 11px; cursor: pointer; color: var(--text-muted);
+  transition: all .12s; font-family: 'DM Mono', monospace;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.arrow-menu-item:hover        { background: var(--surface2); color: var(--text); }
+.arrow-menu-item.danger:hover { background: rgba(255,68,102,.08); color: var(--danger); }
+.arrow-menu-sep { height: 1px; background: var(--border); margin: 3px 0; }

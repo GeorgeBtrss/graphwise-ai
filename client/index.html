@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphwise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&display=swap">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/home.css">
+  <link rel="stylesheet" href="styles/editor.css">
+  <link rel="stylesheet" href="styles/canvas.css">
+  <link rel="stylesheet" href="styles/panels.css">
+  <link rel="stylesheet" href="styles/modals.css">
+  <link rel="stylesheet" href="styles/ai.css">
+</head>
+<body>
+
+  <!-- ═══ HOME VIEW ═══ -->
+  <div id="view-home">
+    <div class="home-header">
+      <div>
+        <div class="home-wordmark">Graphwise</div>
+        <div class="home-sub">Visual architecture maps for developers</div>
+      </div>
+      <button class="btn btn-primary" onclick="Home.createNew()">＋ New Map</button>
+    </div>
+    <div class="home-body">
+      <div id="home-content"></div>
+    </div>
+  </div>
+
+  <!-- ═══ EDITOR VIEW ═══ -->
+  <div id="view-editor">
+    <div class="editor-header">
+      <button class="back-btn" onclick="Editor.goHome()">← Home</button>
+      <div class="divider"></div>
+      <input class="map-title-input" id="map-title-input" placeholder="Untitled Map" oninput="Editor.onTitleChange()"/>
+      <div class="header-tools">
+        <button class="view-mode-btn" id="btn-viewmode" onclick="Editor.toggleViewMode()">
+          <span id="viewmode-icon">◎</span>
+          <span id="viewmode-label">View</span>
+        </button>
+        <div class="divider"></div>
+        <div id="edit-tools">
+          <button class="tool-btn" id="btn-connect" onclick="Canvas.toggleConnectMode()">↗ Draw Arrow</button>
+          <button class="tool-btn" onclick="NodeModal.open()">＋ Add Card</button>
+          <div class="divider"></div>
+        </div>
+        <button class="tool-btn" onclick="Canvas.fitToScreen()">Fit</button>
+        <button class="tool-btn" onclick="Canvas.zoomIn()">＋</button>
+        <button class="tool-btn" onclick="Canvas.zoomOut()">－</button>
+        <div class="divider"></div>
+        <button class="ai-chat-btn" id="btn-ai-chat" onclick="AI.togglePanel()">✦ Ask AI</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="canvas" id="canvas">
+        <svg class="connections" id="svg"></svg>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="panel-card">
+        <div class="panel-header" onclick="Panels.toggle('desc')">
+          <span>Description</span>
+          <span class="panel-chevron open" id="desc-chevron">▾</span>
+        </div>
+        <div class="panel-body" id="desc-body">
+          <textarea class="desc-textarea" id="desc-textarea" placeholder="Add a description…"
+            oninput="Editor.onDescChange()" rows="4"></textarea>
+        </div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-header" onclick="Panels.toggle('legend')">
+          <span>Categories</span>
+          <span class="panel-chevron open" id="legend-chevron">▾</span>
+        </div>
+        <div class="panel-body" id="legend-body">
+          <div id="legend-items"></div>
+          <button class="add-cat-btn" onclick="Categories.add()">＋ Add category</button>
+        </div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-header" onclick="Panels.toggle('controls')">
+          <span>Controls</span>
+          <span class="panel-chevron open" id="controls-chevron">▾</span>
+        </div>
+        <div class="panel-body" id="controls-body">
+          <div class="controls-list">
+            Drag cards to move<br>
+            Scroll to zoom<br>
+            Middle-click or Space+drag to pan<br>
+            "Draw Arrow" → click two cards<br>
+            Click an arrow to edit or delete<br>
+            Hover card for edit options<br>
+            ◎ View hides all edit controls
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODALS ═══ -->
+
+  <div class="modal-backdrop" id="modal-newmap">
+    <div class="modal">
+      <h2>New Map</h2>
+      <div class="modal-field">
+        <label class="modal-label">Map Name</label>
+        <input class="modal-input" id="newmap-name" placeholder="My App Architecture"
+          onkeydown="if(event.key==='Enter') Home.confirmNew()">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-newmap')">Cancel</button>
+        <button class="btn btn-primary" onclick="Home.confirmNew()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-node">
+    <div class="modal">
+      <h2 id="modal-node-title">Add Card</h2>
+      <div class="modal-field">
+        <label class="modal-label">Icon (emoji)</label>
+        <input class="modal-input" id="node-icon-input" maxlength="4" placeholder="🔷">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Card Title</label>
+        <input class="modal-input" id="node-name-input" placeholder="My Component"
+          onkeydown="if(event.key==='Enter') NodeModal.confirm()">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Tag / Type label</label>
+        <input class="modal-input" id="node-tag-input" placeholder="COMP">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">File path (optional)</label>
+        <input class="modal-input" id="node-file-input" placeholder="components/MyComponent.tsx">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Category</label>
+        <div class="cat-picker-grid" id="node-cat-picker"></div>
+        <button class="add-cat-btn" onclick="NodeModal.quickAddCategory()" style="margin-top:8px;">＋ New category</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-node')">Cancel</button>
+        <button class="btn btn-primary" id="modal-node-confirm" onclick="NodeModal.confirm()">Add Card</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-arrow">
+    <div class="modal">
+      <h2 id="modal-arrow-title">Add Arrow</h2>
+      <div class="modal-field">
+        <label class="modal-label">Label (optional)</label>
+        <input class="modal-input" id="arrow-label-input" placeholder="calls, renders, navigates…"
+          onkeydown="if(event.key==='Enter') Arrows.confirm()">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Style</label>
+        <div style="display:flex;gap:14px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;">
+            <input type="radio" name="arrow-style" value="solid" checked> Solid
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;">
+            <input type="radio" name="arrow-style" value="dashed"> Dashed
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Arrows.cancel()">Cancel</button>
+        <button class="btn btn-primary" id="modal-arrow-confirm" onclick="Arrows.confirm()">Add Arrow</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop color-modal" id="modal-color">
+    <div class="modal">
+      <h2 id="color-modal-title">Choose Color</h2>
+      <div class="color-preview-bar" id="color-preview-bar"></div>
+      <div class="modal-field">
+        <label class="modal-label">Presets</label>
+        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+      <div class="color-wheel-wrap">
+        <label class="modal-label" style="margin-bottom:0;">Custom</label>
+        <input type="color" id="color-wheel" oninput="ColorPicker.onWheel(this.value)">
+        <input class="color-hex-input" id="color-hex" placeholder="#7c6dff"
+          oninput="ColorPicker.onHex(this.value)" maxlength="7">
+      </div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-color')">Cancel</button>
+        <button class="btn btn-primary" onclick="ColorPicker.confirm()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm modals -->
+  <div class="modal-backdrop confirm-modal" id="modal-confirm-delete">
+    <div class="modal">
+      <span class="confirm-icon">🗑️</span>
+      <h2>Delete this map?</h2>
+      <p class="confirm-body">This action is permanent and cannot be undone. All cards and arrows will be lost.</p>
+      <div class="confirm-mapname" id="confirm-delete-mapname"></div>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-confirm-delete')">Cancel</button>
+        <button class="btn-confirm-delete" id="confirm-delete-btn">Delete Map</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop confirm-modal" id="modal-confirm-node">
+    <div class="modal">
+      <span class="confirm-icon">🃏</span>
+      <h2>Delete this card?</h2>
+      <p class="confirm-body">The card and all arrows connected to it will be permanently removed.</p>
+      <div class="confirm-mapname" id="confirm-node-name"></div>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-confirm-node')">Cancel</button>
+        <button class="btn-confirm-delete" id="confirm-node-btn">Delete Card</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop confirm-modal" id="modal-confirm-arrow">
+    <div class="modal">
+      <span class="confirm-icon">↗</span>
+      <h2>Delete this arrow?</h2>
+      <p class="confirm-body">The connection between these two cards will be removed.</p>
+      <div class="confirm-mapname" id="confirm-arrow-name"></div>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-confirm-arrow')">Cancel</button>
+        <button class="btn-confirm-delete" id="confirm-arrow-btn">Delete Arrow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow context menu -->
+  <div class="arrow-menu" id="arrow-menu" style="display:none;">
+    <button class="arrow-menu-item" onclick="Arrows.menuEdit()">✎ Edit arrow</button>
+    <div class="arrow-menu-sep"></div>
+    <button class="arrow-menu-item danger" onclick="Arrows.menuDelete()">✕ Delete arrow</button>
+  </div>
+
+  <!-- ═══ AI PANEL ═══ -->
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-panel-header">
+      <span style="font-size:16px;">✦</span>
+      <span class="ai-panel-title">AI Assistant</span>
+      <span class="ai-model-badge">claude-sonnet-4</span>
+      <button class="ai-panel-close" onclick="AI.togglePanel()">✕</button>
+    </div>
+    <div class="ai-context-bar">
+      <div class="ai-context-dot"></div>
+      <span id="ai-context-label">Map context loaded — AI can see your current cards and arrows</span>
+    </div>
+    <div class="ai-messages" id="ai-messages"></div>
+    <div class="ai-suggestions" id="ai-suggestions"></div>
+    <div class="ai-input-row">
+      <textarea class="ai-input" id="ai-input"
+        placeholder="Ask anything about your map, or say 'generate a map for…'" rows="2"
+        onkeydown="AI.inputKeydown(event)" oninput="AI.autoResize(this)"></textarea>
+      <button class="ai-send-btn" id="ai-send-btn" onclick="AI.send()">↑</button>
+    </div>
+  </div>
+
+  <div class="view-mode-banner">◎ View mode — click the pencil to edit</div>
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══ SCRIPTS ═══ (load order matters) -->
+  <script src="scripts/utils.js"></script>
+  <script src="scripts/storage.js"></script>
+  <script src="scripts/colors.js"></script>
+  <script src="scripts/modals.js"></script>
+  <script src="scripts/panels.js"></script>
+  <script src="scripts/labels.js"></script>
+  <script src="scripts/colorpicker.js"></script>
+  <script src="scripts/canvas.js"></script>
+  <script src="scripts/arrows.js"></script>
+  <script src="scripts/nodes.js"></script>
+  <script src="scripts/editor.js"></script>
+  <script src="scripts/home.js"></script>
+  <script src="scripts/ai.js"></script>
+  <script src="scripts/main.js"></script>
+
+</body>
+</html>

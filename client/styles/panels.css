@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════
+   RIGHT PANEL + CATEGORIES
+   ═══════════════════════════════════════════════════ */
+
+.right-panel {
+  position: fixed; right: 16px; top: 68px;
+  z-index: 20; display: flex; flex-direction: column;
+  gap: 8px; width: 224px;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+}
+body.chat-open .right-panel { right: 396px; }
+
+.panel-card {
+  background: rgba(13,13,20,.96);
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.panel-header {
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; font-size: 10px; letter-spacing: .5px;
+  color: var(--text-muted); text-transform: uppercase; user-select: none;
+}
+.panel-header:hover { color: var(--text); }
+.panel-chevron { font-size: 10px; transition: transform .2s; }
+.panel-chevron.open { transform: rotate(180deg); }
+
+.panel-body { padding: 12px 14px; border-top: 1px solid var(--border); }
+.panel-body.collapsed { display: none; }
+
+.desc-textarea {
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: 10px; line-height: 1.7; padding: 8px;
+  resize: none; outline: none; min-height: 76px;
+}
+.desc-textarea:focus { border-color: var(--accent); }
+
+/* ── Category rows ── */
+.cat-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-radius: 5px; }
+.cat-swatch {
+  width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.12); cursor: pointer;
+}
+.cat-name-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 10px; font-family: 'DM Mono', monospace; min-width: 0;
+}
+.cat-name-input:focus { color: #fff; }
+.cat-del-btn {
+  color: var(--text-muted); cursor: pointer; font-size: 11px;
+  background: none; border: none; padding: 2px 4px;
+  border-radius: 3px; transition: color .12s; flex-shrink: 0; line-height: 1;
+}
+.cat-del-btn:hover { color: var(--danger); }
+
+.add-cat-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-muted);
+  cursor: pointer; padding: 4px 0; margin-top: 4px;
+  border: none; background: none;
+  font-family: 'DM Mono', monospace; letter-spacing: .3px;
+}
+.add-cat-btn:hover { color: var(--accent); }

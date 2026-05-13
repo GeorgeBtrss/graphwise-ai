@@ -1,61 +1,61 @@
 // ═══════════════════════════════════════════════════
-// CATEGORIES — CRUD + legend panel rendering
+// LABELS — CRUD + legend panel rendering
 // ═══════════════════════════════════════════════════
 
-const Categories = {
+const Labels = {
   render() {
-    const map = getMap();
-    if (!map) return;
+    const graph = getGraph();
+    if (!graph) return;
     const el = document.getElementById('legend-items');
-    if (!map.categories.length) {
-      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);padding:2px 0 6px;">No categories yet</div>';
+    if (!graph.labels.length) {
+      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);padding:2px 0 6px;">No labels yet</div>';
       return;
     }
-    el.innerHTML = map.categories.map(cat => {
-      const t = catTheme(cat);
-      return `<div class="cat-row" id="catrow-${cat.id}">
-        <div class="cat-swatch" style="background:${t.bg};border-color:${t.border};"
-          onclick="ColorPicker.openForCategory('${cat.id}')"></div>
-        <input class="cat-name-input" value="${escHtml(cat.name)}" placeholder="Category name"
-          onblur="Categories.rename('${cat.id}', this.value)"
+    el.innerHTML = graph.labels.map(label => {
+      const t = labelTheme(label);
+      return `<div class="label-row" id="labelrow-${label.id}">
+        <div class="label-swatch" style="background:${t.bg};border-color:${t.border};"
+          onclick="ColorPicker.openForLabel('${label.id}')"></div>
+        <input class="label-name-input" value="${escHtml(label.name)}" placeholder="Label name"
+          onblur="Labels.rename('${label.id}', this.value)"
           onkeydown="if(event.key==='Enter') this.blur()">
-        <button class="cat-del-btn" onclick="Categories.delete('${cat.id}')" title="Delete">✕</button>
+        <button class="label-del-btn" onclick="Labels.delete('${label.id}')" title="Delete">✕</button>
       </div>`;
     }).join('');
   },
 
   add() {
-    const map = getMap();
-    if (!map) return;
-    const hex = PRESETS[map.categories.length % PRESETS.length];
-    const cat = { id: genId(), name: 'New Category', hex };
-    map.categories.push(cat);
-    persistMap();
+    const graph = getGraph();
+    if (!graph) return;
+    const hex = PRESETS[graph.labels.length % PRESETS.length];
+    const label = { id: genId(), name: 'New Label', hex };
+    graph.labels.push(label);
+    persistGraph();
     this.render();
     setTimeout(() => {
-      const inp = document.querySelector(`#catrow-${cat.id} .cat-name-input`);
+      const inp = document.querySelector(`#labelrow-${label.id} .label-name-input`);
       if (inp) { inp.focus(); inp.select(); }
     }, 60);
   },
 
   rename(id, name) {
-    const map = getMap();
-    const cat = map?.categories.find(c => c.id === id);
-    if (!cat) return;
-    cat.name = name.trim() || cat.name;
-    persistMap();
+    const graph = getGraph();
+    const label   = graph?.labels.find(l => l.id === id);
+    if (!label) return;
+    label.name = name.trim() || label.name;
+    persistGraph();
     this.render();
     Canvas.renderAll();
   },
 
   delete(id) {
-    const map = getMap();
-    if (!map) return;
-    const used = map.nodes.some(n => n.catId === id);
-    if (used && !confirm('This category is used by some cards. Delete anyway?')) return;
-    map.categories = map.categories.filter(c => c.id !== id);
-    map.nodes.forEach(n => { if (n.catId === id) n.catId = map.categories[0]?.id || null; });
-    persistMap();
+    const graph = getGraph();
+    if (!graph) return;
+    const used = graph.nodes.some(n => n.labelId === id);
+    if (used && !confirm('This label is used by some cards. Delete anyway?')) return;
+    graph.labels = graph.labels.filter(c => c.id !== id);
+    graph.nodes.forEach(n => { if (n.labelId === id) n.labelId = graph.labels[0]?.id || null; });
+    persistGraph();
     this.render();
     Canvas.renderAll();
   },

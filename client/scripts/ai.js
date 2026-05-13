@@ -1,23 +1,23 @@
 // ═══════════════════════════════════════════════════
-// AI — chat panel, Claude API, apply map response
+// AI — chat panel, Claude API, apply graph response
 // ═══════════════════════════════════════════════════
 
 const AI = {
   _open:        false,
-  _apiMessages: [],    // {role, content} sent to the API (includes map context)
-  _uiHistory:   [],    // {role, content, applyData?} shown in the panel
+  _apiMessages: [],
+  _uiHistory:   [],
   _typing:      false,
 
-  SYSTEM: `You are an expert software architecture assistant embedded in Graphwise, a visual architecture graphing tool.
+  SYSTEM: `You are an expert software architecture assistant embedded in Graphwise, an AI-powered visual architecture graphing tool.
 
-The user is working on a software architecture map. Their current map is provided as JSON in each message.
+The user is working on a software architecture graph. Their current graph is provided as JSON in each message.
 
 You can:
-1. ANSWER questions about the map — explain components, suggest improvements, identify issues
-2. GENERATE a new map from a description — output a full JSON map structure
-3. MODIFY the existing map — add/remove/edit nodes or arrows and output updated JSON
+1. ANSWER questions about the graph — explain components, suggest improvements, identify issues
+2. GENERATE a new graph from a description — output a full JSON graph structure
+3. MODIFY the existing graph — add/remove/edit nodes or arrows and output updated JSON
 
-When generating or modifying a map, you MUST output a JSON block wrapped in \`\`\`graphwisejson ... \`\`\` tags containing this exact structure:
+When generating or modifying a graph, you MUST output a JSON block wrapped in \`\`\`archmapjson ... \`\`\` tags containing this exact structure:
 {
   "nodes": [
     {
@@ -26,7 +26,7 @@ When generating or modifying a map, you MUST output a JSON block wrapped in \`\`
       "title": "Card Title",
       "tag": "TYPE",
       "file": "optional/path.ts",
-      "catId": "category_id_from_categories_array",
+      "labelId": "label_id_from_labels_array",
       "x": 200,
       "y": 200,
       "items": ["bullet point one", "bullet point two"],
@@ -36,31 +36,30 @@ When generating or modifying a map, you MUST output a JSON block wrapped in \`\`
   "arrows": [
     { "id": "unique_id", "from": "node_id", "to": "node_id", "label": "optional label", "style": "solid" }
   ],
-  "categories": [
-    { "id": "cat_id", "name": "Category Name", "hex": "#2a5298" }
-  ]
+  "labels": [
+    { "id": "label_id", "name": "Label Name", "hex": "#2a5298" }
+  ],
 }
 
 Rules:
-- Always include ALL categories in the output, even ones you didn't change
+- Always include ALL labels in the output, even ones you didn't change
 - Always include ALL nodes in the output when modifying (not just changed ones)
 - The first node with isRoot:true is the root/entry point
 - Position nodes thoughtfully: root at top-center (~500,80), then spread downward/sideways with ~220px horizontal and ~180px vertical spacing
-- Use different hex colors per category to make the map visually clear
+- Use different hex colors per label to make the graph visually clear
 - Arrow style is "solid" or "dashed"
 - IDs must be unique strings (use short descriptive names like "n_chat", "n_storage")
-- When only answering questions (no map changes), do NOT output a JSON block
+- When only answering questions (no graph changes), do NOT output a JSON block
 
-Be concise but helpful. When generating maps, think about real software architecture patterns.`,
+Be concise but helpful. When generating graphs, think about real software architecture patterns.`,
 
-  // ── Panel toggle ──
   togglePanel() {
     this._open = !this._open;
     const panel = document.getElementById('ai-panel');
     const btn   = document.getElementById('btn-ai-chat');
     panel.classList.toggle('open', this._open);
     btn.classList.toggle('open', this._open);
-    document.body.classList.toggle('chat-open', this._open);
+    // No body.chat-open class needed — panel overlaps, doesn't push
 
     if (this._open && !this._uiHistory.length) this._showWelcome();
     if (this._open) setTimeout(() => document.getElementById('ai-input').focus(), 300);
@@ -70,7 +69,6 @@ Be concise but helpful. When generating maps, think about real software architec
     this._open = false;
     document.getElementById('ai-panel').classList.remove('open');
     document.getElementById('btn-ai-chat').classList.remove('open');
-    document.body.classList.remove('chat-open');
   },
 
   reset() {
@@ -83,15 +81,14 @@ Be concise but helpful. When generating maps, think about real software architec
     if (sugg) sugg.innerHTML = '';
   },
 
-  // ── Welcome state ──
   _showWelcome() {
-    const map = getMap();
-    const nc  = map?.nodes.length ?? 0;
+    const graph = getGraph();
+    const nc    = graph?.nodes.length ?? 0;
     this._addMsg('system',
-      `Map loaded: "${map?.name || 'Untitled'}" · ${nc} card${nc !== 1 ? 's' : ''} · Ask me anything or try a suggestion below.`);
+      `Graph loaded: "${graph?.name || 'Untitled'}" · ${nc} card${nc !== 1 ? 's' : ''} · Ask me anything or try a suggestion below.`);
     this._renderSuggestions([
-      'Generate a map for a React app',
-      'What is this map missing?',
+      'Generate a graph for a React Native app',
+      'What is this graph missing?',
       'Explain this architecture',
       'Add error handling cards',
       'Suggest better names for my cards',
@@ -111,7 +108,6 @@ Be concise but helpful. When generating maps, think about real software architec
     this.send();
   },
 
-  // ── Send message ──
   async send() {
     const input = document.getElementById('ai-input');
     const text  = input.value.trim();
@@ -121,7 +117,6 @@ Be concise but helpful. When generating maps, think about real software architec
     this.autoResize(input);
     document.getElementById('ai-suggestions').innerHTML = '';
 
-    // Add to UI and API history
     this._addMsg('user', text);
     this._apiMessages.push({ role: 'user', content: this._buildContextMessage(text) });
 
@@ -144,12 +139,12 @@ Be concise but helpful. When generating maps, think about real software architec
       if (data.error) throw new Error(data.error.message || 'API error');
 
       const reply   = data.content?.map(b => b.text || '').join('') || '';
-      const mapData = this._extractMapJson(reply);
+      const graphData = this._extractGraphJson(reply);
 
       this._apiMessages.push({ role: 'assistant', content: reply });
-      this._addMsg('assistant', reply, mapData || null);
+      this._addMsg('assistant', reply, graphData || null);
 
-      if (!mapData) {
+      if (!graphData) {
         this._renderSuggestions(['Tell me more', 'Apply this as changes', 'What else should I add?']);
       }
     } catch (err) {
@@ -161,83 +156,74 @@ Be concise but helpful. When generating maps, think about real software architec
     }
   },
 
-  // ── Build message with map JSON context ──
   _buildContextMessage(text) {
-    const map = getMap(); if (!map) return text;
+    const graph = getGraph(); if (!graph) return text;
     const ctx = {
-      name:        map.name,
-      description: map.desc,
-      categories:  map.categories.map(c => ({ id: c.id, name: c.name, hex: c.hex })),
-      nodes:       map.nodes.map(n => ({
+      name:        graph.name,
+      description: graph.desc,
+      labels:      graph.labels.map(l => ({ id: l.id, name: l.name, hex: l.hex })),
+      nodes:       graph.nodes.map(n => ({
         id: n.id, title: n.title, tag: n.tag, icon: n.icon,
-        catId: n.catId, file: n.file, items: n.items, isRoot: n.isRoot,
+        labelId: n.labelId, file: n.file, items: n.items, isRoot: n.isRoot,
         x: Math.round(n.x), y: Math.round(n.y),
       })),
-      arrows: map.arrows.map(a => ({ id: a.id, from: a.from, to: a.to, label: a.label, style: a.style })),
+      arrows: graph.arrows.map(a => ({ id: a.id, from: a.from, to: a.to, label: a.label, style: a.style })),
     };
-    return `Current map:\n\`\`\`json\n${JSON.stringify(ctx, null, 2)}\n\`\`\`\n\nUser request: ${text}`;
+    return `Current graph:\n\`\`\`json\n${JSON.stringify(ctx, null, 2)}\n\`\`\`\n\nUser request: ${text}`;
   },
 
-  // ── Apply AI-generated map to canvas ──
-  applyMap(msgIndex) {
+  applyGraph(msgIndex) {
     const msg  = this._uiHistory[msgIndex];
     const data = msg?.applyData; if (!data) return;
-    const map  = getMap();      if (!map)  return;
+    const graph = getGraph();   if (!graph)  return;
 
     if (!Array.isArray(data.nodes) || !data.nodes.length) {
-      showToast('No valid map data in response'); return;
+      showToast('No valid graph data in response'); return;
     }
 
-    // Categories
-    if (Array.isArray(data.categories) && data.categories.length) {
-      map.categories = data.categories.map(c => ({
-        id:   c.id   || genId(),
-        name: c.name || 'Category',
-        hex:  c.hex  || '#2a5298',
+    if (Array.isArray(data.labels) && data.labels.length) {
+      graph.labels = data.labels.map(l => ({
+        id:   l.id   || genId(),
+        name: l.name || 'Label',
+        hex:  l.hex  || '#2a5298',
       }));
     }
 
-    // Nodes
-    map.nodes = data.nodes.map((n, i) => ({
+    graph.nodes = data.nodes.map((n, i) => ({
       id:     n.id    || genId(),
       icon:   n.icon  || '🔷',
       title:  n.title || 'Card',
       tag:    n.tag   || 'COMP',
       file:   n.file  || '',
-      catId:  n.catId || map.categories[0]?.id || null,
+      labelId:  n.labelId || graph.labels[0]?.id || null,
       x:      typeof n.x === 'number' ? n.x : 100 + (i % 4) * 230,
       y:      typeof n.y === 'number' ? n.y : 100 + Math.floor(i / 4) * 200,
       items:  Array.isArray(n.items) ? n.items : [],
       isRoot: !!n.isRoot,
     }));
 
-    // Ensure exactly one root
-    const roots = map.nodes.filter(n => n.isRoot);
-    if (!roots.length && map.nodes.length)     map.nodes[0].isRoot = true;
+    const roots = graph.nodes.filter(n => n.isRoot);
+    if (!roots.length && graph.nodes.length)    graph.nodes[0].isRoot = true;
     if (roots.length > 1) roots.slice(1).forEach(n => n.isRoot = false);
 
-    // Arrows — only keep ones whose node IDs still exist
-    map.arrows = (data.arrows || []).map(a => ({
+    graph.arrows = (data.arrows || []).map(a => ({
       id:    a.id    || genId(),
-      from:  a.from,
-      to:    a.to,
+      from:  a.from, to: a.to,
       label: a.label || '',
       style: a.style || 'solid',
-    })).filter(a => map.nodes.find(n => n.id === a.from) && map.nodes.find(n => n.id === a.to));
+    })).filter(a => graph.nodes.find(n => n.id === a.from) && graph.nodes.find(n => n.id === a.to));
 
-    persistMap();
+    persistGraph();
     Canvas.renderAll();
     setTimeout(() => Canvas.fitToScreen(), 100);
 
-    // Mark button as applied
     const btn = document.getElementById(`apply-btn-${msgIndex}`);
     if (btn) { btn.disabled = true; btn.textContent = '✓ Applied'; }
 
-    showToast('Map updated from AI response');
-    this._addMsg('system', `Map updated — ${map.nodes.length} cards, ${map.arrows.length} arrows applied.`);
+    showToast('Graph updated from AI response');
+    this._addMsg('system', `Graph updated — ${graph.nodes.length} cards, ${graph.arrows.length} arrows applied.`);
   },
 
-  // ── Internal helpers ──
   _addMsg(role, content, applyData = null) {
     this._uiHistory.push({ role, content, applyData });
     this._render();
@@ -246,10 +232,10 @@ Be concise but helpful. When generating maps, think about real software architec
   _render() {
     const el = document.getElementById('ai-messages');
     el.innerHTML = this._uiHistory.map((msg, i) => {
-      const roleLabel    = msg.role === 'user' ? 'You' : msg.role === 'assistant' ? 'AI' : '';
+      const roleLabel     = msg.role === 'user' ? 'You' : msg.role === 'assistant' ? 'AI' : '';
       const bubbleContent = msg.role === 'assistant' ? this._formatText(msg.content) : escHtml(msg.content);
-      const applyBtn     = msg.applyData
-        ? `<button class="ai-apply-btn" onclick="AI.applyMap(${i})" id="apply-btn-${i}">✦ Apply to map</button>`
+      const applyBtn      = msg.applyData
+        ? `<button class="ai-apply-btn" onclick="AI.applyGraph(${i})" id="apply-btn-${i}">✦ Apply to graph</button>`
         : '';
       return `<div class="ai-msg ${msg.role}">
         ${roleLabel ? `<div class="ai-msg-role">${roleLabel}</div>` : ''}
@@ -269,7 +255,7 @@ Be concise but helpful. When generating maps, think about real software architec
 
   _formatText(text) {
     return text
-      .replace(/```graphwisejson[\s\S]*?```/g,
+      .replace(/```archmapjson[\s\S]*?```/g,
         '<em style="color:var(--success);font-size:10px;">✦ Graph data ready — click Apply to graph below</em>')
       .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre>$1</pre>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -277,13 +263,12 @@ Be concise but helpful. When generating maps, think about real software architec
       .replace(/\n/g, '<br>');
   },
 
-  _extractMapJson(text) {
-    const match = text.match(/```graphwisejson\s*([\s\S]*?)```/);
+  _extractGraphJson(text) {
+    const match = text.match(/```archmapjson\s*([\s\S]*?)```/);
     if (!match) return null;
     try { return JSON.parse(match[1].trim()); } catch { return null; }
   },
 
-  // ── Input helpers ──
   inputKeydown(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); }
   },

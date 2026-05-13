@@ -6,13 +6,13 @@
   <title>Graphwise</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&display=swap">
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/home.css">
-  <link rel="stylesheet" href="styles/editor.css">
-  <link rel="stylesheet" href="styles/canvas.css">
-  <link rel="stylesheet" href="styles/panels.css">
-  <link rel="stylesheet" href="styles/modals.css">
-  <link rel="stylesheet" href="styles/ai.css">
+  <link rel="stylesheet" href="client/styles/base.css">
+  <link rel="stylesheet" href="client/styles/home.css">
+  <link rel="stylesheet" href="client/styles/editor.css">
+  <link rel="stylesheet" href="client/styles/canvas.css">
+  <link rel="stylesheet" href="client/styles/panels.css">
+  <link rel="stylesheet" href="client/styles/modals.css">
+  <link rel="stylesheet" href="client/styles/ai.css">
 </head>
 <body>
 
@@ -21,10 +21,24 @@
     <div class="home-header">
       <div>
         <div class="home-wordmark">Graphwise</div>
-        <div class="home-sub">Visual architecture maps for developers</div>
+        <div class="home-sub">AI-powered architecture graphs for developers</div>
       </div>
-      <button class="btn btn-primary" onclick="Home.createNew()">＋ New Map</button>
+      <div class="home-header-actions">
+        <button class="btn btn-folder" onclick="Home.createNewFolder()">📁 New Folder</button>
+        <button class="btn btn-primary" onclick="Home.createNewGraph()">✦ New Graph</button>
+      </div>
     </div>
+
+    <!-- Home tabs -->
+    <div class="home-tabs">
+      <button class="home-tab active" id="tab-graphs" onclick="Home.switchTab('graphs')">
+        <span class="tab-icon">◈</span> Graphs
+      </button>
+      <button class="home-tab" id="tab-folders" onclick="Home.switchTab('folders')">
+        <span class="tab-icon">▤</span> Folders
+      </button>
+    </div>
+
     <div class="home-body">
       <div id="home-content"></div>
     </div>
@@ -35,7 +49,7 @@
     <div class="editor-header">
       <button class="back-btn" onclick="Editor.goHome()">← Home</button>
       <div class="divider"></div>
-      <input class="map-title-input" id="map-title-input" placeholder="Untitled Map" oninput="Editor.onTitleChange()"/>
+      <input class="graph-title-input" id="graph-title-input" placeholder="Untitled Graph" oninput="Editor.onTitleChange()"/>
       <div class="header-tools">
         <button class="view-mode-btn" id="btn-viewmode" onclick="Editor.toggleViewMode()">
           <span id="viewmode-icon">◎</span>
@@ -61,8 +75,8 @@
       </div>
     </div>
 
-    <!-- Right panel -->
-    <div class="right-panel">
+    <!-- Right panel — always visible, AI panel overlaps it -->
+    <div class="right-panel" id="right-panel">
       <div class="panel-card">
         <div class="panel-header" onclick="Panels.toggle('desc')">
           <span>Description</span>
@@ -75,12 +89,13 @@
       </div>
       <div class="panel-card">
         <div class="panel-header" onclick="Panels.toggle('legend')">
-          <span>Categories</span>
+          <span>Labels</span>
           <span class="panel-chevron open" id="legend-chevron">▾</span>
         </div>
         <div class="panel-body" id="legend-body">
           <div id="legend-items"></div>
-          <button class="add-cat-btn" onclick="Categories.add()">＋ Add category</button>
+          <!-- hidden in view mode via CSS, but panel header stays clickable -->
+          <button class="add-label-btn" onclick="Labels.add()">＋ Add label</button>
         </div>
       </div>
       <div class="panel-card">
@@ -90,13 +105,12 @@
         </div>
         <div class="panel-body" id="controls-body">
           <div class="controls-list">
-            Drag cards to move<br>
-            Scroll to zoom<br>
+            Drag cards to move<br>Scroll to zoom<br>
             Middle-click or Space+drag to pan<br>
             "Draw Arrow" → click two cards<br>
             Click an arrow to edit or delete<br>
             Hover card for edit options<br>
-            ◎ View hides all edit controls
+            ◎ View hides editing controls
           </div>
         </div>
       </div>
@@ -105,21 +119,67 @@
 
   <!-- ═══ MODALS ═══ -->
 
-  <div class="modal-backdrop" id="modal-newmap">
+  <!-- New Graph -->
+  <div class="modal-backdrop" id="modal-newgraph">
     <div class="modal">
-      <h2>New Map</h2>
+      <h2>New Graph</h2>
       <div class="modal-field">
-        <label class="modal-label">Map Name</label>
-        <input class="modal-input" id="newmap-name" placeholder="My App Architecture"
-          onkeydown="if(event.key==='Enter') Home.confirmNew()">
+        <label class="modal-label">Graph Name</label>
+        <input class="modal-input" id="newgraph-name" placeholder="My App Architecture"
+          onkeydown="if(event.key==='Enter') Home.confirmNewGraph()">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Folder (optional)</label>
+        <select class="modal-input" id="newgraph-folder">
+          <option value="">— No folder —</option>
+        </select>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="Modals.close('modal-newmap')">Cancel</button>
-        <button class="btn btn-primary" onclick="Home.confirmNew()">Create</button>
+        <button class="btn btn-ghost" onclick="Modals.close('modal-newgraph')">Cancel</button>
+        <button class="btn btn-primary" onclick="Home.confirmNewGraph()">Create Graph</button>
       </div>
     </div>
   </div>
 
+  <!-- Edit Graph -->
+  <div class="modal-backdrop" id="modal-editgraph">
+    <div class="modal">
+      <h2>Edit Graph</h2>
+      <div class="modal-field">
+        <label class="modal-label">Graph Name</label>
+        <input class="modal-input" id="editgraph-name" placeholder="My App Architecture"
+          onkeydown="if(event.key==='Enter') Home.confirmEdit()">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Folder</label>
+        <select class="modal-input" id="editgraph-folder">
+          <option value="">— No folder —</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-editgraph')">Cancel</button>
+        <button class="btn btn-primary" onclick="Home.confirmEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Folder -->
+  <div class="modal-backdrop" id="modal-newfolder">
+    <div class="modal">
+      <h2>New Folder</h2>
+      <div class="modal-field">
+        <label class="modal-label">Folder Name</label>
+        <input class="modal-input" id="newfolder-name" placeholder="My Project"
+          onkeydown="if(event.key==='Enter') Home.confirmNewFolder()">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-newfolder')">Cancel</button>
+        <button class="btn btn-primary" onclick="Home.confirmNewFolder()">Create Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Card -->
   <div class="modal-backdrop" id="modal-node">
     <div class="modal">
       <h2 id="modal-node-title">Add Card</h2>
@@ -141,9 +201,9 @@
         <input class="modal-input" id="node-file-input" placeholder="components/MyComponent.tsx">
       </div>
       <div class="modal-field">
-        <label class="modal-label">Category</label>
-        <div class="cat-picker-grid" id="node-cat-picker"></div>
-        <button class="add-cat-btn" onclick="NodeModal.quickAddCategory()" style="margin-top:8px;">＋ New category</button>
+        <label class="modal-label">Label</label>
+        <div class="label-picker-grid" id="node-label-picker"></div>
+        <button class="add-label-btn" onclick="NodeModal.quickAddLabel()" style="margin-top:8px;">＋ New label</button>
       </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="Modals.close('modal-node')">Cancel</button>
@@ -152,6 +212,7 @@
     </div>
   </div>
 
+  <!-- Arrow -->
   <div class="modal-backdrop" id="modal-arrow">
     <div class="modal">
       <h2 id="modal-arrow-title">Add Arrow</h2>
@@ -178,6 +239,7 @@
     </div>
   </div>
 
+  <!-- Color Picker -->
   <div class="modal-backdrop color-modal" id="modal-color">
     <div class="modal">
       <h2 id="color-modal-title">Choose Color</h2>
@@ -199,20 +261,35 @@
     </div>
   </div>
 
-  <!-- Confirm modals -->
+  <!-- Confirm: delete graph -->
   <div class="modal-backdrop confirm-modal" id="modal-confirm-delete">
     <div class="modal">
       <span class="confirm-icon">🗑️</span>
-      <h2>Delete this map?</h2>
+      <h2>Delete this graph?</h2>
       <p class="confirm-body">This action is permanent and cannot be undone. All cards and arrows will be lost.</p>
       <div class="confirm-mapname" id="confirm-delete-mapname"></div>
       <div class="modal-actions" style="margin-top:24px;">
         <button class="btn btn-ghost" onclick="Modals.close('modal-confirm-delete')">Cancel</button>
-        <button class="btn-confirm-delete" id="confirm-delete-btn">Delete Map</button>
+        <button class="btn-confirm-delete" id="confirm-delete-btn">Delete Graph</button>
       </div>
     </div>
   </div>
 
+  <!-- Confirm: delete folder -->
+  <div class="modal-backdrop confirm-modal" id="modal-confirm-folder">
+    <div class="modal">
+      <span class="confirm-icon">📁</span>
+      <h2>Delete this folder?</h2>
+      <p class="confirm-body">The folder will be removed. Graphs inside will be moved to the root.</p>
+      <div class="confirm-mapname" id="confirm-folder-name"></div>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="btn btn-ghost" onclick="Modals.close('modal-confirm-folder')">Cancel</button>
+        <button class="btn-confirm-delete" id="confirm-folder-btn">Delete Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm: delete card -->
   <div class="modal-backdrop confirm-modal" id="modal-confirm-node">
     <div class="modal">
       <span class="confirm-icon">🃏</span>
@@ -226,6 +303,7 @@
     </div>
   </div>
 
+  <!-- Confirm: delete arrow -->
   <div class="modal-backdrop confirm-modal" id="modal-confirm-arrow">
     <div class="modal">
       <span class="confirm-icon">↗</span>
@@ -246,7 +324,7 @@
     <button class="arrow-menu-item danger" onclick="Arrows.menuDelete()">✕ Delete arrow</button>
   </div>
 
-  <!-- ═══ AI PANEL ═══ -->
+  <!-- ═══ AI PANEL — overlaps right panel ═══ -->
   <div class="ai-panel" id="ai-panel">
     <div class="ai-panel-header">
       <span style="font-size:16px;">✦</span>
@@ -256,13 +334,13 @@
     </div>
     <div class="ai-context-bar">
       <div class="ai-context-dot"></div>
-      <span id="ai-context-label">Map context loaded — AI can see your current cards and arrows</span>
+      <span id="ai-context-label">Graph context loaded — AI can see your current cards and arrows</span>
     </div>
     <div class="ai-messages" id="ai-messages"></div>
     <div class="ai-suggestions" id="ai-suggestions"></div>
     <div class="ai-input-row">
       <textarea class="ai-input" id="ai-input"
-        placeholder="Ask anything about your map, or say 'generate a map for…'" rows="2"
+        placeholder="Ask anything about your graph, or say 'generate a graph for…'" rows="1"
         onkeydown="AI.inputKeydown(event)" oninput="AI.autoResize(this)"></textarea>
       <button class="ai-send-btn" id="ai-send-btn" onclick="AI.send()">↑</button>
     </div>
@@ -272,20 +350,20 @@
   <div class="toast" id="toast"></div>
 
   <!-- ═══ SCRIPTS ═══ (load order matters) -->
-  <script src="scripts/utils.js"></script>
-  <script src="scripts/storage.js"></script>
-  <script src="scripts/colors.js"></script>
-  <script src="scripts/modals.js"></script>
-  <script src="scripts/panels.js"></script>
-  <script src="scripts/labels.js"></script>
-  <script src="scripts/colorpicker.js"></script>
-  <script src="scripts/canvas.js"></script>
-  <script src="scripts/arrows.js"></script>
-  <script src="scripts/nodes.js"></script>
-  <script src="scripts/editor.js"></script>
-  <script src="scripts/home.js"></script>
-  <script src="scripts/ai.js"></script>
-  <script src="scripts/main.js"></script>
+  <script src="client/scripts/utils.js"></script>
+  <script src="client/scripts/storage.js"></script>
+  <script src="client/scripts/colors.js"></script>
+  <script src="client/scripts/modals.js"></script>
+  <script src="client/scripts/panels.js"></script>
+  <script src="client/scripts/categories.js"></script>
+  <script src="client/scripts/colorpicker.js"></script>
+  <script src="client/scripts/canvas.js"></script>
+  <script src="client/scripts/arrows.js"></script>
+  <script src="client/scripts/nodes.js"></script>
+  <script src="client/scripts/editor.js"></script>
+  <script src="client/scripts/home.js"></script>
+  <script src="client/scripts/ai.js"></script>
+  <script src="client/scripts/main.js"></script>
 
 </body>
 </html>

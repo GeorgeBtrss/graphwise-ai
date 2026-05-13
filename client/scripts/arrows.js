@@ -23,8 +23,8 @@ const Arrows = {
 
   // ── Edit modal ──
   openEditModal(arrowId) {
-    const map = getMap();
-    const a   = map?.arrows.find(x => x.id === arrowId);
+    const graph = getGraph();
+    const a   = graph?.arrows.find(x => x.id === arrowId);
     if (!a) return;
     this._editingId   = arrowId;
     this._pendingFrom = null;
@@ -38,16 +38,16 @@ const Arrows = {
   },
 
   confirm() {
-    const map   = getMap(); if (!map) return;
+    const graph   = getGraph(); if (!graph) return;
     const label = document.getElementById('arrow-label-input').value.trim();
     const style = document.querySelector('input[name="arrow-style"]:checked').value;
 
     if (this._editingId) {
-      const a = map.arrows.find(x => x.id === this._editingId);
+      const a = graph.arrows.find(x => x.id === this._editingId);
       if (a) { a.label = label; a.style = style; }
       this._editingId = null;
     } else {
-      map.arrows.push({
+      graph.arrows.push({
         id:    genId(),
         from:  this._pendingFrom,
         to:    this._pendingTo,
@@ -100,8 +100,8 @@ const Arrows = {
   menuDelete() {
     const id  = this._menuTargetId;
     this.hideMenu();
-    const map = getMap();
-    const a   = map?.arrows.find(x => x.id === id);
+    const graph = getGraph();
+    const a   = graph?.arrows.find(x => x.id === id);
     if (!a) return;
     const fn = map.nodes.find(n => n.id === a.from);
     const tn = map.nodes.find(n => n.id === a.to);

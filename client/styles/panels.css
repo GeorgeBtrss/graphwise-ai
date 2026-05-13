@@ -1,14 +1,13 @@
 /* ═══════════════════════════════════════════════════
-   RIGHT PANEL + CATEGORIES
+   RIGHT PANEL + LABELS
    ═══════════════════════════════════════════════════ */
 
+/* Right panel stays fixed — AI panel overlaps it, not pushes it */
 .right-panel {
   position: fixed; right: 16px; top: 68px;
   z-index: 20; display: flex; flex-direction: column;
   gap: 8px; width: 224px;
-  transition: right .28s cubic-bezier(.4,0,.2,1);
 }
-body.chat-open .right-panel { right: 396px; }
 
 .panel-card {
   background: rgba(13,13,20,.96);
@@ -36,29 +35,29 @@ body.chat-open .right-panel { right: 396px; }
 }
 .desc-textarea:focus { border-color: var(--accent); }
 
-/* ── Category rows ── */
-.cat-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-radius: 5px; }
-.cat-swatch {
+/* ── Label rows ── */
+.label-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-radius: 5px; }
+.label-swatch {
   width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
   border: 1px solid rgba(255,255,255,.12); cursor: pointer;
 }
-.cat-name-input {
+.label-name-input {
   flex: 1; background: none; border: none; outline: none;
   color: var(--text); font-size: 10px; font-family: 'DM Mono', monospace; min-width: 0;
 }
-.cat-name-input:focus { color: #fff; }
-.cat-del-btn {
+.label-name-input:focus { color: #fff; }
+.label-del-btn {
   color: var(--text-muted); cursor: pointer; font-size: 11px;
   background: none; border: none; padding: 2px 4px;
   border-radius: 3px; transition: color .12s; flex-shrink: 0; line-height: 1;
 }
-.cat-del-btn:hover { color: var(--danger); }
+.label-del-btn:hover { color: var(--danger); }
 
-.add-cat-btn {
+.add-label-btn {
   display: flex; align-items: center; gap: 6px;
   font-size: 10px; color: var(--text-muted);
   cursor: pointer; padding: 4px 0; margin-top: 4px;
   border: none; background: none;
   font-family: 'DM Mono', monospace; letter-spacing: .3px;
 }
-.add-cat-btn:hover { color: var(--accent); }
+.add-label-btn:hover { color: var(--accent); }

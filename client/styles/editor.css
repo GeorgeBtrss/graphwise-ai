@@ -19,13 +19,13 @@
 }
 .back-btn:hover { color: var(--text); background: var(--surface2); }
 
-.map-title-input {
+.graph-title-input {
   font-family: 'Fraunces', serif;
   font-size: 18px; font-weight: 700; font-style: italic;
   color: var(--text); background: none; border: none; outline: none;
   letter-spacing: -.3px; min-width: 40px; max-width: 320px;
 }
-.map-title-input::placeholder { color: var(--text-muted); }
+.graph-title-input::placeholder { color: var(--text-muted); }
 
 .header-tools { display: flex; gap: 6px; margin-left: auto; align-items: center; }
 
@@ -53,21 +53,24 @@
 .view-mode-btn:hover   { border-color: var(--border2); color: var(--text); }
 .view-mode-btn.viewing { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.4); color: var(--success); }
 
-/* ── View mode: hide all editing UI ── */
-body.view-mode .node           { cursor: default !important; pointer-events: none; }
-body.view-mode .node-actions   { display: none !important; }
-body.view-mode .node-add-item  { display: none !important; }
-body.view-mode .del-item       { display: none !important; }
+/* ── View mode: hide editing UI but keep panels interactive ──
+   Key change: panel-header stays pointer-events:all so the user
+   can still collapse/expand panels while viewing. Only the
+   editable content inside them gets locked. */
+body.view-mode .node            { cursor: default !important; pointer-events: none; }
+body.view-mode .node-actions    { display: none !important; }
+body.view-mode .node-add-item   { display: none !important; }
+body.view-mode .del-item        { display: none !important; }
 body.view-mode [contenteditable] { pointer-events: none; cursor: default; }
-body.view-mode .canvas-wrap    { cursor: default; }
-body.view-mode #edit-tools     { opacity: 0; pointer-events: none; }
-body.view-mode .add-cat-btn    { display: none; }
-body.view-mode .cat-name-input { pointer-events: none; }
-body.view-mode .cat-del-btn    { display: none; }
-body.view-mode .cat-swatch     { pointer-events: none; cursor: default; }
-body.view-mode .desc-textarea  { pointer-events: none; border-color: transparent; background: transparent; resize: none; }
-body.view-mode .map-title-input { pointer-events: none; }
-body.view-mode .panel-header   { pointer-events: none; }
+body.view-mode .canvas-wrap     { cursor: default; }
+body.view-mode #edit-tools      { opacity: 0; pointer-events: none; }
+body.view-mode .add-label-btn     { display: none; }
+body.view-mode .label-name-input  { pointer-events: none; }
+body.view-mode .label-del-btn     { display: none; }
+body.view-mode .label-swatch      { pointer-events: none; cursor: default; }
+body.view-mode .desc-textarea   { pointer-events: none; border-color: transparent; background: transparent; resize: none; }
+body.view-mode .graph-title-input { pointer-events: none; }
+/* panel-header intentionally NOT blocked — user can still collapse/expand */
 
 .view-mode-banner {
   display: none; position: fixed; bottom: 24px; left: 50%;

@@ -2,93 +2,95 @@
 // STORAGE — isolated persistence layer
 //
 // ALL reads and writes go through this object.
-// To add a backend (Supabase, etc.), only this file changes.
-// Every other file calls Storage.* and stays untouched.
+// To add a backend (Supabase etc.), only this file changes.
 // ═══════════════════════════════════════════════════
 
 const Storage = {
-  KEY: 'graphwise_v3',
+  KEY_GRAPHS:  'graphwise_graphs_v1',
+  KEY_FOLDERS: 'graphwise_folders_v1',
 
-  // ── Future-ready map shape ──
-  // When you add accounts, fill these in from auth session:
-  //   ownerId, folderId, isPublic, shareSlug, collaborators, version
   defaults(partial = {}) {
     return {
-      ownerId:       null,   // → auth.user.id when accounts exist
-      folderId:      null,   // → folder UUID for organisation
-      isPublic:      false,  // → true when shared publicly
-      shareSlug:     null,   // → e.g. "graphwise.io/m/my-app"
-      collaborators: [],     // → [{userId, role}] for sharing
-      version:       1,      // → bump when schema changes, drives migrateMap()
+      ownerId:       null,
+      folderId:      null,
+      isPublic:      false,
+      shareSlug:     null,
+      collaborators: [],
+      version:       1,
       ...partial,
     };
   },
 
-  // Migrate old saved maps to the current schema version
-  migrateMap(map) {
-    if (!map.version) {
-      // v0 → v1: add future-ready fields with safe defaults
-      map.version       = 1;
-      map.ownerId       = null;
-      map.folderId      = null;
-      map.isPublic      = false;
-      map.shareSlug     = null;
-      map.collaborators = [];
+  migrateGraph(g) {
+    if (!g.version) {
+      g.version       = 1;
+      g.ownerId       = null;
+      g.folderId      = null;
+      g.isPublic      = false;
+      g.shareSlug     = null;
+      g.collaborators = [];
     }
-    // if (map.version === 1) { /* v1 → v2 changes */ map.version = 2; }
-    return map;
+    return g;
   },
 
-  // ── CRUD ──
-  // All async even though localStorage is sync.
-  // Swap body to await fetch()/supabase when ready.
-
-  async getAll() {
+  // ── Graphs ──
+  async getAllGraphs() {
     try {
-      const raw = localStorage.getItem(this.KEY);
-      const maps = raw ? JSON.parse(raw) : [];
-      return maps.map(m => this.migrateMap(m));
-    } catch (e) {
-      console.error('Storage.getAll failed', e);
-      return [];
-    }
+      const raw = localStorage.getItem(this.KEY_GRAPHS);
+      return (raw ? JSON.parse(raw) : []).map(g => this.migrateGraph(g));
+    } catch { return []; }
   },
 
-  async save(map) {
-    // Later: await supabase.from('maps').upsert({ id: map.id, data: map })
-    const all = await this.getAll();
-    const idx = all.findIndex(m => m.id === map.id);
-    if (idx >= 0) all[idx] = map; else all.push(map);
-    localStorage.setItem(this.KEY, JSON.stringify(all));
+  async saveGraph(graph) {
+    const all = await this.getAllGraphs();
+    const idx = all.findIndex(g => g.id === graph.id);
+    if (idx >= 0) all[idx] = graph; else all.push(graph);
+    localStorage.setItem(this.KEY_GRAPHS, JSON.stringify(all));
   },
 
-  async delete(id) {
-    // Later: await supabase.from('maps').delete().eq('id', id)
-    const all = await this.getAll();
-    localStorage.setItem(this.KEY, JSON.stringify(all.filter(m => m.id !== id)));
+  async deleteGraph(id) {
+    const all = await this.getAllGraphs();
+    localStorage.setItem(this.KEY_GRAPHS, JSON.stringify(all.filter(g => g.id !== id)));
   },
 
-  async getById(id) {
-    const all = await this.getAll();
-    return all.find(m => m.id === id) || null;
+  // ── Folders ──
+  async getAllFolders() {
+    try {
+      const raw = localStorage.getItem(this.KEY_FOLDERS);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  },
+
+  async saveFolder(folder) {
+    const all = await this.getAllFolders();
+    const idx = all.findIndex(f => f.id === folder.id);
+    if (idx >= 0) all[idx] = folder; else all.push(folder);
+    localStorage.setItem(this.KEY_FOLDERS, JSON.stringify(all));
+  },
+
+  async deleteFolder(id) {
+    const all = await this.getAllFolders();
+    localStorage.setItem(this.KEY_FOLDERS, JSON.stringify(all.filter(f => f.id !== id)));
   },
 };
 
-// ── In-memory state (single source of truth during a session) ──
-let maps = [];
-let currentMapId = null;
+// ── In-memory state ──
+let graphs    = [];   // all graphs
+let folders   = [];   // all folders
+let currentGraphId = null;
 
-function getMap() {
-  return maps.find(m => m.id === currentMapId) || null;
+function getGraph() {
+  return graphs.find(g => g.id === currentGraphId) || null;
 }
 
-async function loadAllMaps() {
-  maps = await Storage.getAll();
+async function loadAllData() {
+  graphs  = await Storage.getAllGraphs();
+  folders = await Storage.getAllFolders();
 }
 
-async function persistMap() {
-  const map = getMap();
-  if (!map) return;
-  map.updated = Date.now();
-  await Storage.save(map);
+async function persistGraph() {
+  const g = getGraph();
+  if (!g) return;
+  g.updated = Date.now();
+  await Storage.saveGraph(g);
 }

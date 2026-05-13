@@ -3,11 +3,10 @@
 // ═══════════════════════════════════════════════════
 
 const Nodes = {
-  // ── Render a single node card into the canvas ──
   renderOne(n, canvasEl) {
-    const map = getMap();
-    const cat = catById(map, n.catId);
-    const t   = catTheme(cat);
+    const graph = getGraph();
+    const label   = labelById(graph, n.labelId);
+    const t     = labelTheme(label);
 
     const div = document.createElement('div');
     div.className = 'node';
@@ -39,7 +38,7 @@ const Nodes = {
         <span class="node-title-el" contenteditable="true"
           data-node="${n.id}"
           onblur="Nodes.onTitleBlur(this)">${escHtml(n.title || 'Card')}</span>
-        <span class="node-tag" style="background:${t.border};color:${t.text};">${escHtml(n.tag || cat.name || '')}</span>
+        <span class="node-tag" style="background:${t.border};color:${t.text};">${escHtml(n.tag || label.name || '')}</span>
         ${rootBadge}
       </div>
       <div class="node-body">
@@ -48,13 +47,11 @@ const Nodes = {
         <div class="node-add-item" onclick="Nodes.addItem('${n.id}')">＋ add detail</div>
       </div>`;
 
-    // Show/hide del-item buttons on hover
     div.addEventListener('mouseenter', () =>
       div.querySelectorAll('.del-item').forEach(e => e.style.opacity = '1'));
     div.addEventListener('mouseleave', () =>
       div.querySelectorAll('.del-item').forEach(e => e.style.opacity = '0'));
 
-    // Drag / connect-mode click
     div.addEventListener('mousedown', e => {
       const isEditable = e.target.isContentEditable;
       const isBtn      = e.target.classList.contains('node-action-btn');
@@ -71,32 +68,29 @@ const Nodes = {
     canvasEl.appendChild(div);
   },
 
-  // ── Inline title edit ──
   onTitleBlur(el) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === el.dataset.node);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === el.dataset.node);
     if (!n) return;
     n.title = el.innerText.trim() || 'Card';
-    persistMap();
+    persistGraph();
   },
 
-  // ── Inline bullet edit ──
   onItemBlur(el) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === el.dataset.node);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === el.dataset.node);
     if (!n) return;
     n.items[parseInt(el.dataset.item)] = el.innerText.trim();
-    persistMap();
+    persistGraph();
   },
 
-  // ── Add bullet ──
   addItem(nodeId) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === nodeId);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === nodeId);
     if (!n) return;
     n.items = n.items || [];
     n.items.push('New detail');
-    persistMap();
+    persistGraph();
     Canvas.renderAll();
     setTimeout(() => {
       const items = document.getElementById('items-' + nodeId)?.querySelectorAll('.node-item');
@@ -104,87 +98,86 @@ const Nodes = {
     }, 60);
   },
 
-  // ── Delete bullet ──
   deleteItem(nodeId, index) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === nodeId);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === nodeId);
     if (!n) return;
     n.items.splice(index, 1);
-    persistMap();
+    persistGraph();
     Canvas.renderAll();
   },
 };
 
-// ── Node modal (add / edit) ──
+// ── Node modal ──
 const NodeModal = {
-  _editingId:  null,
-  _selectedCatId: null,
+  _editingId:     null,
+  _selectedLabelId: null,
 
   open() {
-    const map = getMap(); if (!map) return;
+    const graph = getGraph(); if (!graph) return;
     this._editingId      = null;
-    this._selectedCatId  = map.categories[0]?.id || null;
+    this._selectedLabelId  = graph.labels[0]?.id || null;
     document.getElementById('node-icon-input').value          = '🔷';
     document.getElementById('node-name-input').value          = '';
     document.getElementById('node-tag-input').value           = 'COMP';
     document.getElementById('node-file-input').value          = '';
     document.getElementById('modal-node-title').textContent   = 'Add Card';
     document.getElementById('modal-node-confirm').textContent = 'Add Card';
-    this._buildCatPicker();
+    this._buildLabelPicker();
     Modals.open('modal-node');
     setTimeout(() => document.getElementById('node-name-input').focus(), 100);
   },
 
   openEdit(id) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === id);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === id);
     if (!n) return;
     this._editingId     = id;
-    this._selectedCatId = n.catId || map.categories[0]?.id || null;
+    this._selectedLabelId = n.labelId || graph.labels[0]?.id || null;
     document.getElementById('node-icon-input').value          = n.icon  || '🔷';
     document.getElementById('node-name-input').value          = n.title || '';
     document.getElementById('node-tag-input').value           = n.tag   || '';
     document.getElementById('node-file-input').value          = n.file  || '';
     document.getElementById('modal-node-title').textContent   = 'Edit Card';
     document.getElementById('modal-node-confirm').textContent = 'Save Changes';
-    this._buildCatPicker();
+    this._buildLabelPicker();
     Modals.open('modal-node');
   },
 
-  _buildCatPicker() {
-    const map = getMap(); if (!map) return;
-    const el  = document.getElementById('node-cat-picker');
-    if (!map.categories.length) {
-      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);">No categories — add one in the panel first.</div>';
+  _buildLabelPicker() {
+    const graph = getGraph(); if (!graph) return;
+    const el    = document.getElementById('node-label-picker');
+    if (!graph.labels.length) {
+      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);">No labels — add one in the panel first.</div>';
       return;
     }
-    el.innerHTML = map.categories.map(cat => {
-      const t   = catTheme(cat);
-      const sel = cat.id === this._selectedCatId;
-      return `<div class="cat-chip ${sel ? 'selected' : ''}"
+    el.innerHTML = graph.labels.map(label => {
+      const t   = labelTheme(label);
+      const sel = label.id === this._selectedLabelId;
+      return `<div class="label-chip ${sel ? 'selected' : ''}"
         style="${sel ? `background:${t.bg};border-color:#fff;color:#fff;` : `border-color:${t.border};`}"
-        onclick="NodeModal.selectCat('${cat.id}')">
-        <div class="cat-chip-dot" style="background:${t.text};"></div>
-        ${escHtml(cat.name)}
+        onclick="NodeModal.selectLabel('${label.id}')">
+        <div class="label-chip-dot" style="background:${t.text};"></div>
+        ${escHtml(label.name)}
       </div>`;
     }).join('');
   },
 
-  selectCat(id) {
-    this._selectedCatId = id;
-    this._buildCatPicker();
+  selectLabel(id) {
+    this._selectedLabelId = id;
+    this._buildLabelPicker();
   },
 
-  quickAddCategory() {
-    const map = getMap(); if (!map) return;
-    const hex = PRESETS[map.categories.length % PRESETS.length];
-    const cat = { id: genId(), name: 'New Category', hex };
-    map.categories.push(cat);
-    this._selectedCatId = cat.id;
-    persistMap();
-    this._buildCatPicker();
-    Categories.render();
-    showToast('Category added — rename it in the Categories panel');
+  quickAddLabel() {
+    const graph = getGraph(); if (!graph) return;
+    const hex   = PRESETS[graph.labels.length % PRESETS.length];
+    const label = { id: genId(), name: 'New Label', hex };
+    graph.labels.push(label);
+    this._selectedLabelId = label.id;
+    persistGraph();
+    this._buildLabelPicker();
+    Labels.render();
+    showToast('Label added — rename it in the Labels panel');
   },
 
   confirm() {
@@ -192,38 +185,37 @@ const NodeModal = {
     const title = document.getElementById('node-name-input').value.trim() || 'Card';
     const tag   = document.getElementById('node-tag-input').value.trim();
     const file  = document.getElementById('node-file-input').value.trim();
-    const map   = getMap();
+    const graph = getGraph();
 
     if (this._editingId) {
-      const n = map.nodes.find(x => x.id === this._editingId);
-      if (n) { n.icon = icon; n.title = title; n.tag = tag; n.file = file; n.catId = this._selectedCatId; }
+      const n = graph.nodes.find(x => x.id === this._editingId);
+      if (n) { n.icon = icon; n.title = title; n.tag = tag; n.file = file; n.labelId = this._selectedLabelId; }
     } else {
       const wrap = document.getElementById('canvasWrap');
       const cx   = (wrap.clientWidth  / 2 - Canvas.panX) / Canvas.scale;
       const cy   = (wrap.clientHeight / 2 - Canvas.panY) / Canvas.scale;
-      map.nodes.push({
+      graph.nodes.push({
         id: genId(), icon, title, tag, file,
-        catId: this._selectedCatId,
+        labelId: this._selectedLabelId,
         x: cx - 90, y: cy - 60,
-        items: [],
-        isRoot: false,
+        items: [], isRoot: false,
       });
     }
 
-    persistMap();
+    persistGraph();
     Modals.close('modal-node');
     Canvas.renderAll();
   },
 
   confirmDelete(id) {
-    const map = getMap();
-    const n   = map?.nodes.find(x => x.id === id);
+    const graph = getGraph();
+    const n     = graph?.nodes.find(x => x.id === id);
     if (!n) return;
     document.getElementById('confirm-node-name').textContent = n.title || 'Untitled Card';
     document.getElementById('confirm-node-btn').onclick = () => {
-      map.nodes  = map.nodes.filter(x => x.id !== id);
-      map.arrows = map.arrows.filter(a => a.from !== id && a.to !== id);
-      persistMap();
+      graph.nodes  = graph.nodes.filter(x => x.id !== id);
+      graph.arrows = graph.arrows.filter(a => a.from !== id && a.to !== id);
+      persistGraph();
       Modals.close('modal-confirm-node');
       Canvas.renderAll();
     };

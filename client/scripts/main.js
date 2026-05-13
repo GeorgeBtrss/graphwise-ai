@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════
 
 (async function boot() {
-  // 1. Load persisted maps into memory
-  maps = await Storage.getAll();
+  // 1. Load all persisted data into memory
+  await loadAllData();   // fills graphs[] and folders[]
 
   // 2. Wire up subsystem event listeners
   Modals.init();   // modal backdrop clicks + Escape key

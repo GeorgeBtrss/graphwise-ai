@@ -9,7 +9,6 @@ const Canvas = {
   _dragging: null, _dragOffset: { x:0, y:0 },
   _rafId: null,
 
-  // ── Transform ──
   applyTransform() {
     document.getElementById('canvas').style.transform =
       `translate(${this.panX}px,${this.panY}px) scale(${this.scale})`;
@@ -19,11 +18,11 @@ const Canvas = {
   zoomOut() { this.scale = clamp(this.scale / 1.2, .15, 3); this.applyTransform(); },
 
   fitToScreen() {
-    const map = getMap();
-    if (!map || !map.nodes.length) return;
+    const graph = getGraph();
+    if (!graph || !graph.nodes.length) return;
     const wrap = document.getElementById('canvasWrap');
     let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
-    map.nodes.forEach(n => {
+    graph.nodes.forEach(n => {
       const el = document.getElementById(n.id);
       const w = el ? el.offsetWidth : 200, h = el ? el.offsetHeight : 120;
       minX = Math.min(minX, n.x); minY = Math.min(minY, n.y);
@@ -43,26 +42,23 @@ const Canvas = {
     this.applyTransform();
   },
 
-  // ── Full render ──
   renderAll() {
     const canvas = document.getElementById('canvas');
     Array.from(canvas.children).forEach(c => { if (c.tagName !== 'svg') c.remove(); });
-    const map = getMap();
-    if (!map) return;
-    map.nodes.forEach(n => Nodes.renderOne(n, canvas));
+    const graph = getGraph();
+    if (!graph) return;
+    graph.nodes.forEach(n => Nodes.renderOne(n, canvas));
     this.drawArrows();
-    Categories.render();
+    Labels.render();
     this.applyTransform();
   },
 
-  // ── Arrow drawing ──
   drawArrows() {
     const svg = document.getElementById('svg');
     svg.innerHTML = '';
-    const map = getMap();
-    if (!map) return;
+    const graph = getGraph();
+    if (!graph) return;
 
-    // Arrow markers
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     ['solid','dashed'].forEach(type => {
       const m = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
@@ -75,9 +71,9 @@ const Canvas = {
     });
     svg.appendChild(defs);
 
-    map.arrows.forEach(a => {
-      const fn = map.nodes.find(n => n.id === a.from);
-      const tn = map.nodes.find(n => n.id === a.to);
+    graph.arrows.forEach(a => {
+      const fn = graph.nodes.find(n => n.id === a.from);
+      const tn = graph.nodes.find(n => n.id === a.to);
       if (!fn || !tn) return;
 
       const fe = document.getElementById(fn.id), te = document.getElementById(tn.id);
@@ -98,7 +94,6 @@ const Canvas = {
       path.setAttribute('opacity','.55'); path.setAttribute('marker-end',`url(#arr-${a.style||'solid'})`);
       if (a.style === 'dashed') { path.setAttribute('stroke-dasharray','6,4'); path.style.animation='dash-flow 1.5s linear infinite'; }
 
-      // Wide invisible hit target
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       hit.setAttribute('d', d); hit.setAttribute('stroke','transparent');
       hit.setAttribute('stroke-width','14'); hit.setAttribute('fill','none');
@@ -169,15 +164,14 @@ const Canvas = {
     }
   },
 
-  // ── Pointer event bootstrap ──
   init() {
     const wrap = document.getElementById('canvasWrap');
 
     document.addEventListener('mousemove', e => {
       if (this._dragging) {
-        const id  = this._dragging.id;
-        const map = getMap();
-        const n   = map?.nodes.find(x => x.id === id);
+        const id    = this._dragging.id;
+        const graph = getGraph();
+        const n     = graph?.nodes.find(x => x.id === id);
         if (!n) return;
         n.x = (e.clientX - this.panX) / this.scale - this._dragOffset.x;
         n.y = (e.clientY - this.panY) / this.scale - this._dragOffset.y;
@@ -196,7 +190,7 @@ const Canvas = {
     document.addEventListener('mouseup', () => {
       if (this._dragging) {
         this._dragging.classList.remove('dragging');
-        persistMap();
+        persistGraph();
         this._dragging = null;
         this.drawArrows();
       }

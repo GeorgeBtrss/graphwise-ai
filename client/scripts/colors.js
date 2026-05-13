@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-// COLORS — preset palette + category theme helpers
+// COLORS — preset palette + label theme helpers
 // ═══════════════════════════════════════════════════
 
 const PRESETS = [
@@ -17,7 +17,7 @@ const PRESETS = [
   '#0d2030','#155080','#2090d0',
 ];
 
-const DEFAULT_CATEGORIES = [
+const DEFAULT_LABELS = [
   { name: 'Screen',    hex: '#2a5298' },
   { name: 'Component', hex: '#266b40' },
   { name: 'Hook',      hex: '#8a5a1a' },
@@ -25,16 +25,16 @@ const DEFAULT_CATEGORIES = [
   { name: 'Storage',   hex: '#3a3a90' },
 ];
 
-function catTheme(cat) {
-  return deriveTheme(cat.hex);
+function labelTheme(label) {
+  return deriveTheme(label.hex);
 }
 
-function catById(map, id) {
-  return map.categories.find(c => c.id === id)
-    || map.categories[0]
+function labelById(map, id) {
+  return map.labels.find(l => l.id === id)
+    || map.labels[0]
     || { id: 'fallback', name: '?', hex: '#3a3a90' };
 }
 
-function makeDefaultCategories() {
-  return DEFAULT_CATEGORIES.map(c => ({ ...c, id: genId() }));
+function makeDefaultLabels() {
+  return DEFAULT_LABELS.map(l => ({ ...l, id: genId() }));
 }

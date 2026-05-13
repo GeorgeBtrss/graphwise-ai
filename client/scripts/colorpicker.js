@@ -17,14 +17,14 @@ const ColorPicker = {
     Modals.open('modal-color');
   },
 
-  openForCategory(catId) {
-    const map = getMap();
-    const cat = map?.categories.find(c => c.id === catId);
-    if (!cat) return;
-    this.open(cat.hex, `Color for "${cat.name}"`, hex => {
-      cat.hex = hex;
-      persistMap();
-      Categories.render();
+  openForLabel(labelId) {
+    const graph = getGraph();
+    const label = graph?.labels.find(l => l.id === labelId);
+    if (!label) return;
+    this.open(label.hex, `Color for "${label.name}"`, hex => {
+      label.hex = hex;
+      persistGraph();
+      Labels.render();
       Canvas.renderAll();
     });
   },

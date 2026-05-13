@@ -1,23 +1,20 @@
 // ═══════════════════════════════════════════════════
-// EDITOR — open/close map, view mode, header inputs
+// EDITOR — open/close graph, view mode, header inputs
 // ═══════════════════════════════════════════════════
 
 const Editor = {
   viewMode: false,
 
-  open(mapId) {
-    currentMapId = mapId;
-    const map    = getMap();
+  open(graphId) {
+    currentGraphId = graphId;
+    const g = getGraph();
 
-    // Populate header inputs
-    document.getElementById('map-title-input').value  = map.name || '';
-    document.getElementById('desc-textarea').value    = map.desc || '';
+    document.getElementById('graph-title-input').value = g.name || '';
+    document.getElementById('desc-textarea').value     = g.desc || '';
 
-    // Show editor, hide home
     document.getElementById('view-editor').classList.add('active');
     document.getElementById('view-home').classList.add('hidden');
 
-    // Reset all subsystem state
     Canvas.reset();
     Canvas._connectMode = false;
     Canvas._connectSrc  = null;
@@ -25,10 +22,8 @@ const Editor = {
     document.getElementById('canvasWrap').classList.remove('arrow-mode');
 
     this._setViewMode(false);
-
     AI.close();
     AI.reset();
-
     Panels.resetAll();
 
     setTimeout(() => { Canvas.renderAll(); Canvas.fitToScreen(); }, 80);
@@ -41,29 +36,26 @@ const Editor = {
     Home.render();
   },
 
-  // ── Title / desc live sync ──
   onTitleChange() {
-    const map = getMap(); if (!map) return;
-    map.name = document.getElementById('map-title-input').value;
-    persistMap();
+    const g = getGraph(); if (!g) return;
+    g.name = document.getElementById('graph-title-input').value;
+    persistGraph();
   },
 
   onDescChange() {
-    const map = getMap(); if (!map) return;
-    map.desc = document.getElementById('desc-textarea').value;
-    persistMap();
+    const g = getGraph(); if (!g) return;
+    g.desc = document.getElementById('desc-textarea').value;
+    persistGraph();
   },
 
-  // Flush inputs before navigating away (belt-and-suspenders)
   _flushInputs() {
-    const map = getMap(); if (!map) return;
-    map.name    = document.getElementById('map-title-input').value.trim() || 'Untitled';
-    map.desc    = document.getElementById('desc-textarea').value;
-    map.updated = Date.now();
-    persistMap();
+    const g = getGraph(); if (!g) return;
+    g.name    = document.getElementById('graph-title-input').value.trim() || 'Untitled';
+    g.desc    = document.getElementById('desc-textarea').value;
+    g.updated = Date.now();
+    persistGraph();
   },
 
-  // ── View mode ──
   toggleViewMode() { this._setViewMode(!this.viewMode); },
 
   _setViewMode(on) {
@@ -76,7 +68,7 @@ const Editor = {
 
     if (on) {
       btn.classList.add('viewing');
-      icon.textContent  = '✎';
+      icon.textContent  = '✏️';
       label.textContent = 'Edit';
       if (Canvas._connectMode) Canvas.toggleConnectMode();
       Arrows.hideMenu();
@@ -85,8 +77,6 @@ const Editor = {
       icon.textContent  = '◎';
       label.textContent = 'View';
     }
-
-    // Redraw so arrow cursors / interactivity update
     Canvas.drawArrows();
   },
 };

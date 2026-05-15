@@ -96,3 +96,38 @@ input[type=color] {
 }
 .btn-confirm-delete:hover { background: #e03050; border-color: #e03050; }
 .confirm-modal.open .modal { animation: confirm-pop .2s ease forwards; }
+
+/* ──────────────────────────────────────────
+   NODE LABEL DROPDOWN
+   ────────────────────────────────────────── */
+
+.node-label-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.node-label-preview {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.15);
+  flex-shrink: 0;
+}
+
+.node-label-select {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  outline: none;
+  cursor: pointer;
+}
+
+.node-label-select:focus {
+  border-color: var(--accent);
+}

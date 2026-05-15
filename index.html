@@ -63,6 +63,8 @@
         <button class="tool-btn" onclick="Canvas.fitToScreen()">Fit</button>
         <button class="tool-btn" onclick="Canvas.zoomIn()">＋</button>
         <button class="tool-btn" onclick="Canvas.zoomOut()">－</button>
+        <button class="toolbar-btn" onclick="History.undo()" title="Undo (Ctrl+Z)"> ↶ </button>
+        <button class="toolbar-btn" onclick="History.redo()" title="Redo (Ctrl+Y)"> ↷ </button>
         <div class="divider"></div>
         <button class="ai-chat-btn" id="btn-ai-chat" onclick="AI.togglePanel()">✦ Ask AI</button>
       </div>
@@ -356,6 +358,7 @@
   <script src="client/scripts/colorpicker.js"></script>
   <script src="client/scripts/canvas.js"></script>
   <script src="client/scripts/arrows.js"></script>
+  <script src="client/scripts/history.js"></script>
   <script src="client/scripts/nodes.js"></script>
   <script src="client/scripts/editor.js"></script>
   <script src="client/scripts/home.js"></script>

@@ -145,27 +145,69 @@ const NodeModal = {
   },
 
   _buildLabelPicker() {
-    const graph = getGraph(); if (!graph) return;
-    const el    = document.getElementById('node-label-picker');
+    const graph = getGraph();
+    if (!graph) return;
+
+    const el = document.getElementById('node-label-picker');
+
     if (!graph.labels.length) {
-      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);">No labels — add one in the panel first.</div>';
+      el.innerHTML = `
+        <div style="font-size:10px;color:var(--text-muted);">
+          No labels — add one in the Labels panel first.
+        </div>
+      `;
       return;
     }
-    el.innerHTML = graph.labels.map(label => {
-      const t   = labelTheme(label);
-      const sel = label.id === this._selectedLabelId;
-      return `<div class="label-chip ${sel ? 'selected' : ''}"
-        style="${sel ? `background:${t.bg};border-color:#fff;color:#fff;` : `border-color:${t.border};`}"
-        onclick="NodeModal.selectLabel('${label.id}')">
-        <div class="label-chip-dot" style="background:${t.text};"></div>
-        ${escHtml(label.name)}
-      </div>`;
-    }).join('');
+
+    el.innerHTML = `
+      <div class="node-label-select-wrap">
+        <div
+          class="node-label-preview"
+          id="node-label-preview">
+        </div>
+
+        <select
+          id="node-label-select"
+          class="node-label-select"
+          onchange="NodeModal.selectLabel(this.value)">
+          ${graph.labels.map(label => `
+            <option
+              value="${label.id}"
+              ${label.id === this._selectedLabelId ? 'selected' : ''}>
+              ${escHtml(label.name)}
+            </option>
+          `).join('')}
+        </select>
+      </div>
+    `;
+
+    this._updateLabelPreview();
   },
 
   selectLabel(id) {
     this._selectedLabelId = id;
     this._buildLabelPicker();
+  },
+
+  _updateLabelPreview() {
+    const graph = getGraph();
+    if (!graph) return;
+
+    const label = graph.labels.find(
+      l => l.id === this._selectedLabelId
+    );
+
+    const preview = document.getElementById('node-label-preview');
+
+    if (!preview || !label) return;
+
+    preview.style.background = label.hex;
+  },
+
+  selectLabel(id) {
+    this._selectedLabelId = id;
+
+    this._updateLabelPreview();
   },
 
   quickAddLabel() {

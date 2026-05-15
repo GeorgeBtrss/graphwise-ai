@@ -104,3 +104,46 @@ svg.connections {
 .arrow-menu-item:hover        { background: var(--surface2); color: var(--text); }
 .arrow-menu-item.danger:hover { background: rgba(255,68,102,.08); color: var(--danger); }
 .arrow-menu-sep { height: 1px; background: var(--border); margin: 3px 0; }
+
+/* ═══════════════════════════════════════════════════
+   TOOLBAR BUTTONS — undo / redo
+   ═══════════════════════════════════════════════════ */
+
+.toolbar-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center;
+  justify-content: center;
+  background: rgba(18,18,28,.92);
+  border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text-muted);
+  font-size: 15px; cursor: pointer;
+  transition:
+    background .14s,
+    border-color .14s,
+    color .14s,
+    transform .08s,
+    box-shadow .14s;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 4px 18px rgba(0,0,0,.22);
+}
+
+.toolbar-btn:hover {
+  background: rgba(28,28,40,.98);
+  border-color: var(--border2);
+  color: var(--text); transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.28);
+}
+
+.toolbar-btn:active { transform: scale(.96); }
+
+.toolbar-btn.disabled,
+.toolbar-btn:disabled {
+  opacity: .45; cursor: default;
+  pointer-events: none;
+}
+.toolbar-btn svg { width: 15px; height: 15px; }
+

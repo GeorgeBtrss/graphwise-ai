@@ -221,8 +221,18 @@ const Canvas = {
       if (e.code === 'ControlLeft' || e.code === 'ControlRight') {
         this._ctrlDown = true;
       }
-    if (e.code === 'Escape' && this._connectMode) {
-      this.toggleConnectMode();
+      if (e.code === 'Escape' && this._connectMode) {
+        this.toggleConnectMode();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+
+        if (e.shiftKey) {
+          History.redo();
+        } else {
+          History.undo();
+        }
+        return;
       }
     });
 

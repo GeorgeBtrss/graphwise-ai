@@ -10,17 +10,14 @@
   padding-right: 2px; padding-bottom: 20px;
   scrollbar-width: thin;
 }
-
 .right-panel {
   scrollbar-width: thin;
   scrollbar-color: rgba(120,130,255,.35) transparent;
 }
 .right-panel::-webkit-scrollbar { width: 6px; }
-
 .right-panel::-webkit-scrollbar-track {
   background: transparent; margin: 10px 0;
 }
-
 .right-panel::-webkit-scrollbar-thumb {
   background: linear-gradient(
     to bottom,
@@ -30,7 +27,6 @@
   border-radius: 999px; border: 1px solid rgba(255,255,255,.04);
   transition: background .15s ease;
 }
-
 .right-panel::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to bottom,
@@ -39,14 +35,12 @@
   );
 }
 .right-panel::-webkit-scrollbar-corner { background: transparent; }
-
 .panel-card {
   background: rgba(13,13,20,.96);
   border: 1px solid var(--border);
   border-radius: 12px; overflow: visible;
   flex-shrink: 0;
 }
-
 .panel-header {
   padding: 10px 14px; display: flex;
   align-items: center; justify-content: space-between;
@@ -56,7 +50,6 @@
   background: rgba(13,13,20,.98); z-index: 2;
 }
 .panel-header:hover { color: var(--text); }
-
 .panel-chevron {
   font-size: 10px; transition: transform .2s;
 }

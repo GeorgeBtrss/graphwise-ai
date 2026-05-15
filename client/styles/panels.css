@@ -2,38 +2,71 @@
    RIGHT PANEL + LABELS
    ═══════════════════════════════════════════════════ */
 
-/* Right panel stays fixed — AI panel overlaps it, not pushes it */
 .right-panel {
-  position: fixed; right: 16px; top: 68px;
-  z-index: 20; display: flex; flex-direction: column;
-  gap: 8px; width: 224px;
-  /* Scrollable when content overflows the viewport */
-  max-height: calc(100vh - 84px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-bottom: 16px;
+  position: fixed; right: 16px; top: 68px; bottom: 16px;
+  z-index: 20; width: 224px; display: flex;
+  flex-direction: column; gap: 8px;
+  overflow-y: auto; overflow-x: hidden;
+  padding-right: 2px; padding-bottom: 20px;
+  scrollbar-width: thin;
 }
 
-/* Custom scrollbar for the panel */
-.right-panel::-webkit-scrollbar { width: 4px; }
-.right-panel::-webkit-scrollbar-track { background: transparent; }
-.right-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.right-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120,130,255,.35) transparent;
+}
+.right-panel::-webkit-scrollbar { width: 6px; }
+
+.right-panel::-webkit-scrollbar-track {
+  background: transparent; margin: 10px 0;
+}
+
+.right-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    rgba(120,130,255,.22),
+    rgba(120,130,255,.42)
+  );
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.04);
+  transition: background .15s ease;
+}
+
+.right-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    to bottom,
+    rgba(120,130,255,.35),
+    rgba(120,130,255,.6)
+  );
+}
+.right-panel::-webkit-scrollbar-corner { background: transparent; }
 
 .panel-card {
   background: rgba(13,13,20,.96);
-  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: visible;
+  flex-shrink: 0;
 }
+
 .panel-header {
-  padding: 10px 14px;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; display: flex;
+  align-items: center; justify-content: space-between;
   cursor: pointer; font-size: 10px; letter-spacing: .5px;
-  color: var(--text-muted); text-transform: uppercase; user-select: none;
+  color: var(--text-muted); text-transform: uppercase;
+  user-select: none; position: sticky; top: 0;
+  background: rgba(13,13,20,.98); z-index: 2;
 }
 .panel-header:hover { color: var(--text); }
-.panel-chevron { font-size: 10px; transition: transform .2s; }
+
+.panel-chevron {
+  font-size: 10px; transition: transform .2s;
+}
 .panel-chevron.open { transform: rotate(180deg); }
 
-.panel-body { padding: 12px 14px; border-top: 1px solid var(--border); }
+.panel-body {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  overflow: visible;
+}
 .panel-body.collapsed { display: none; }
 
 .desc-textarea {
@@ -41,7 +74,8 @@
   border: 1px solid var(--border); border-radius: 6px;
   color: var(--text); font-family: 'DM Mono', monospace;
   font-size: 10px; line-height: 1.7; padding: 8px;
-  resize: none; outline: none; min-height: 76px;
+  resize: vertical; outline: none;
+  min-height: 76px; overflow: hidden;
 }
 .desc-textarea:focus { border-color: var(--accent); }
 

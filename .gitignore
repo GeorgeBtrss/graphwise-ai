@@ -8,11 +8,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Env (never commit API keys)
 .env
 .env.local
 .env.*
 
-# If you add a build step later
+# For future use
 node_modules/
 dist/

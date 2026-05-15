@@ -58,7 +58,7 @@ const Arrows = {
       if (Canvas._connectMode) Canvas.toggleConnectMode();
     }
 
-    persistMap();
+    persistGraph();
     Modals.close('modal-arrow');
     Canvas.drawArrows();
   },
@@ -103,14 +103,14 @@ const Arrows = {
     const graph = getGraph();
     const a   = graph?.arrows.find(x => x.id === id);
     if (!a) return;
-    const fn = map.nodes.find(n => n.id === a.from);
-    const tn = map.nodes.find(n => n.id === a.to);
+    const fn = graph.nodes.find(n => n.id === a.from);
+    const tn = graph.nodes.find(n => n.id === a.to);
     const label = a.label ? ` (${a.label})` : '';
     document.getElementById('confirm-arrow-name').textContent =
       `${fn?.title || '?'}  →  ${tn?.title || '?'}${label}`;
     document.getElementById('confirm-arrow-btn').onclick = () => {
-      map.arrows = map.arrows.filter(x => x.id !== id);
-      persistMap();
+      graph.arrows = graph.arrows.filter(x => x.id !== id);
+      persistGraph();
       Modals.close('modal-confirm-arrow');
       Canvas.drawArrows();
     };

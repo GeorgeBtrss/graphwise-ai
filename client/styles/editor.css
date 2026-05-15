@@ -65,6 +65,7 @@ body.view-mode [contenteditable] { pointer-events: none; cursor: default; }
 body.view-mode .canvas-wrap     { cursor: default; }
 body.view-mode #edit-tools      { opacity: 0; pointer-events: none; }
 body.view-mode .add-label-btn     { display: none; }
+body.view-mode .add-label-btn   { display: none; }
 body.view-mode .label-name-input  { pointer-events: none; }
 body.view-mode .label-del-btn     { display: none; }
 body.view-mode .label-swatch      { pointer-events: none; cursor: default; }

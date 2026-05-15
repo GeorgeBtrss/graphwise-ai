@@ -60,7 +60,7 @@ const Nodes = {
       if (isEditable || isBtn || isAddItem || isDelItem) return;
       if (Editor.viewMode) return;
       if (Canvas._connectMode) { e.stopPropagation(); Canvas.handleConnectClick(n.id, div); return; }
-      if (e.button !== 0 || Canvas._spaceDown) return;
+      if (e.button !== 0 || Canvas._ctrlDown) return;
       e.stopPropagation();
       Canvas.startDrag(div, n, e.clientX, e.clientY);
     });
@@ -134,7 +134,7 @@ const NodeModal = {
     if (!n) return;
     this._editingId     = id;
     this._selectedLabelId = n.labelId || graph.labels[0]?.id || null;
-    document.getElementById('node-icon-input').value          = n.icon  || '🔷';
+    document.getElementById('node-icon-input').value          = '🔷';
     document.getElementById('node-name-input').value          = n.title || '';
     document.getElementById('node-tag-input').value           = n.tag   || '';
     document.getElementById('node-file-input').value          = n.file  || '';

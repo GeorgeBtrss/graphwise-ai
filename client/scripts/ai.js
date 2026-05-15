@@ -17,7 +17,7 @@ You can:
 2. GENERATE a new graph from a description — output a full JSON graph structure
 3. MODIFY the existing graph — add/remove/edit nodes or arrows and output updated JSON
 
-When generating or modifying a graph, you MUST output a JSON block wrapped in \`\`\`archmapjson ... \`\`\` tags containing this exact structure:
+When generating or modifying a graph, you MUST output a JSON block wrapped in \`\`\`graphwisejson ... \`\`\` tags containing this exact structure:
 {
   "nodes": [
     {
@@ -255,7 +255,7 @@ Be concise but helpful. When generating graphs, think about real software archit
 
   _formatText(text) {
     return text
-      .replace(/```archmapjson[\s\S]*?```/g,
+      .replace(/```graphwisejson\s*([\s\S]*?)```/g,
         '<em style="color:var(--success);font-size:10px;">✦ Graph data ready — click Apply to graph below</em>')
       .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre>$1</pre>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -264,7 +264,7 @@ Be concise but helpful. When generating graphs, think about real software archit
   },
 
   _extractGraphJson(text) {
-    const match = text.match(/```archmapjson\s*([\s\S]*?)```/);
+    const match = text.match(/```graphwisejson\s*([\s\S]*?)```/);
     if (!match) return null;
     try { return JSON.parse(match[1].trim()); } catch { return null; }
   },

@@ -5,7 +5,7 @@
 const Canvas = {
   scale: 1, panX: 60, panY: 60,
   _isPanning: false, _panStart: { x:0, y:0 },
-  _spaceDown: false,
+  _ctrlDown: false,
   _dragging: null, _dragOffset: { x:0, y:0 },
   _rafId: null,
 
@@ -38,7 +38,7 @@ const Canvas = {
 
   reset() {
     this.scale = 1; this.panX = 60; this.panY = 60;
-    this._spaceDown = false;
+    this._ctrlDown = false;
     this.applyTransform();
   },
 
@@ -198,7 +198,7 @@ const Canvas = {
     });
 
     wrap.addEventListener('mousedown', e => {
-      if (e.button === 1 || (e.button === 0 && this._spaceDown)) {
+      if (e.button === 1 || (e.button === 0 && this._ctrlDown)) {
         e.preventDefault();
         this._isPanning = true;
         this._panStart  = { x: e.clientX - this.panX, y: e.clientY - this.panY };
@@ -218,10 +218,19 @@ const Canvas = {
     }, { passive: false });
 
     document.addEventListener('keydown', e => {
-      if (e.code === 'Space' && e.target === document.body) { this._spaceDown = true; e.preventDefault(); }
-      if (e.code === 'Escape' && this._connectMode) this.toggleConnectMode();
+      if (e.code === 'ControlLeft' || e.code === 'ControlRight') {
+        this._ctrlDown = true;
+      }
+    if (e.code === 'Escape' && this._connectMode) {
+      this.toggleConnectMode();
+      }
     });
-    document.addEventListener('keyup', e => { if (e.code === 'Space') this._spaceDown = false; });
+
+    document.addEventListener('keyup', e => {
+      if (e.code === 'ControlLeft' || e.code === 'ControlRight') {
+        this._ctrlDown = false;
+      }
+    });
   },
 
   startDrag(nodeEl, nodeData, clientX, clientY) {

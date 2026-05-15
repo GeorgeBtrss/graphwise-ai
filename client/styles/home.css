@@ -132,7 +132,7 @@ select.modal-input option {
 .folder-info { flex: 1; min-width: 0; }
 .folder-name { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .folder-meta { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
-.folder-actions { display: none; gap: 4px; flex-shrink: 0; }
+.folder-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
 .folder-card:hover .folder-actions { display: flex; }
 
 /* ── New item cards ── */

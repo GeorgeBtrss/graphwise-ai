@@ -7,7 +7,17 @@
   position: fixed; right: 16px; top: 68px;
   z-index: 20; display: flex; flex-direction: column;
   gap: 8px; width: 224px;
+  /* Scrollable when content overflows the viewport */
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 16px;
 }
+
+/* Custom scrollbar for the panel */
+.right-panel::-webkit-scrollbar { width: 4px; }
+.right-panel::-webkit-scrollbar-track { background: transparent; }
+.right-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
 .panel-card {
   background: rgba(13,13,20,.96);
@@ -35,29 +45,29 @@
 }
 .desc-textarea:focus { border-color: var(--accent); }
 
-/* ── Label rows ── */
-.label-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-radius: 5px; }
-.label-swatch {
+/* ── Label rows (renamed from label rows) ── */
+.label-row, .label-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-radius: 5px; }
+.label-swatch, .label-swatch {
   width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
   border: 1px solid rgba(255,255,255,.12); cursor: pointer;
 }
-.label-name-input {
+.label-name-input, .label-name-input {
   flex: 1; background: none; border: none; outline: none;
   color: var(--text); font-size: 10px; font-family: 'DM Mono', monospace; min-width: 0;
 }
-.label-name-input:focus { color: #fff; }
-.label-del-btn {
+.label-name-input:focus, .label-name-input:focus { color: #fff; }
+.label-del-btn, .label-del-btn {
   color: var(--text-muted); cursor: pointer; font-size: 11px;
   background: none; border: none; padding: 2px 4px;
   border-radius: 3px; transition: color .12s; flex-shrink: 0; line-height: 1;
 }
-.label-del-btn:hover { color: var(--danger); }
+.label-del-btn:hover, .label-del-btn:hover { color: var(--danger); }
 
-.add-label-btn {
+.add-label-btn, .add-label-btn {
   display: flex; align-items: center; gap: 6px;
   font-size: 10px; color: var(--text-muted);
   cursor: pointer; padding: 4px 0; margin-top: 4px;
   border: none; background: none;
   font-family: 'DM Mono', monospace; letter-spacing: .3px;
 }
-.add-label-btn:hover { color: var(--accent); }
+.add-label-btn:hover, .add-label-btn:hover { color: var(--accent); }

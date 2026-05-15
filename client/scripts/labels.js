@@ -6,9 +6,18 @@ const Labels = {
   render() {
     const graph = getGraph();
     if (!graph) return;
+    if (!Array.isArray(graph.labels)) {
+      graph.labels = [];
+    }
+
     const el = document.getElementById('legend-items');
-    if (!graph.labels.length) {
-      el.innerHTML = '<div style="font-size:10px;color:var(--text-muted);padding:2px 0 6px;">No labels yet</div>';
+
+    if (graph.labels.length === 0) {
+      el.innerHTML = `
+        <div style="font-size:10px;color:var(--text-muted);padding:2px 0 6px;">
+          No labels yet
+        </div>
+      `;
       return;
     }
     el.innerHTML = graph.labels.map(label => {
@@ -27,15 +36,46 @@ const Labels = {
   add() {
     const graph = getGraph();
     if (!graph) return;
-    const hex = PRESETS[graph.labels.length % PRESETS.length];
-    const label = { id: genId(), name: 'New Label', hex };
+
+    if (!Array.isArray(graph.labels)) {
+      graph.labels = [];
+    }
+
+    const presets = Array.isArray(PRESETS) && PRESETS.length
+      ? PRESETS
+      : ['#7c6dff'];
+
+    const label = {
+      id: genId(),
+      name: 'New Label',
+      hex: presets[graph.labels.length % presets.length],
+
+      // NEW ATTRIBUTES
+      textColor: '#ffffff',
+      borderStyle: 'solid',
+      description: '',
+    };
+
     graph.labels.push(label);
+
     persistGraph();
+
     this.render();
+    Canvas.renderAll();
+
     setTimeout(() => {
-      const inp = document.querySelector(`#labelrow-${label.id} .label-name-input`);
-      if (inp) { inp.focus(); inp.select(); }
+      const inp = document.querySelector(
+        `#labelrow-${label.id} .label-name-input`
+      );
+
+      if (inp) {
+        inp.focus();
+        inp.select();
+      }
     }, 60);
+
+    // OPEN EDIT MENU AUTOMATICALLY
+    ColorPicker.openForLabel(label.id);
   },
 
   rename(id, name) {

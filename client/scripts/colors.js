@@ -29,10 +29,9 @@ function labelTheme(label) {
   return deriveTheme(label.hex);
 }
 
-function labelById(map, id) {
-  return map.labels.find(l => l.id === id)
-    || map.labels[0]
-    || { id: 'fallback', name: '?', hex: '#3a3a90' };
+function labelById(graph, id) {
+  if (!graph?.labels) return null;
+  return graph.labels.find(l => l.id === id) || null;
 }
 
 function makeDefaultLabels() {

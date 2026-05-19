@@ -8,6 +8,8 @@ const Canvas = {
   _ctrlDown: false,
   _dragging: null, _dragOffset: { x:0, y:0 },
   _rafId: null,
+  _selectedNodes: new Set(),
+  _selectMode: false,
 
   applyTransform() {
     document.getElementById('canvas').style.transform =
@@ -51,6 +53,16 @@ const Canvas = {
     this.drawArrows();
     Labels.render();
     this.applyTransform();
+  },
+
+  toggleSelectMode() {
+    this._selectMode = !this._selectMode;
+
+    if (!this._selectMode) {
+      this._selectedNodes.clear();
+    }
+
+    this.renderAll();
   },
 
   drawArrows() {
@@ -168,18 +180,68 @@ const Canvas = {
     const wrap = document.getElementById('canvasWrap');
 
     document.addEventListener('mousemove', e => {
+
       if (this._dragging) {
-        const id    = this._dragging.id;
+
+        const id = this._dragging.id;
+
         const graph = getGraph();
-        const n     = graph?.nodes.find(x => x.id === id);
+
+        const n = graph?.nodes.find(
+          x => x.id === id
+        );
+
         if (!n) return;
-        n.x = (e.clientX - this.panX) / this.scale - this._dragOffset.x;
-        n.y = (e.clientY - this.panY) / this.scale - this._dragOffset.y;
-        this._dragging.style.left = n.x + 'px';
-        this._dragging.style.top  = n.y + 'px';
-        if (!this._rafId) this._rafId = requestAnimationFrame(() => { this.drawArrows(); this._rafId = null; });
+
+        const oldX = n.x;
+        const oldY = n.y;
+
+        n.x =
+          (e.clientX - this.panX) / this.scale
+          - this._dragOffset.x;
+
+        n.y =
+          (e.clientY - this.panY) / this.scale
+          - this._dragOffset.y;
+
+        this._dragging.el.style.left = n.x + 'px';
+        this._dragging.el.style.top  = n.y + 'px';
+
+        // ── Move all selected nodes ──
+        const dx = n.x - oldX;
+        const dy = n.y - oldY;
+
+        this._dragging.selected.forEach(selId => {
+
+          if (selId === id) return;
+
+          const other = graph.nodes.find(
+            x => x.id === selId
+          );
+
+          if (!other) return;
+
+          other.x += dx;
+          other.y += dy;
+
+          const otherEl = document.getElementById(other.id);
+
+          if (otherEl) {
+            otherEl.style.left = other.x + 'px';
+            otherEl.style.top  = other.y + 'px';
+          }
+        });
+
+        if (!this._rafId) {
+          this._rafId = requestAnimationFrame(() => {
+            this.drawArrows();
+            this._rafId = null;
+          });
+        }
+
         return;
       }
+
       if (this._isPanning) {
         this.panX = e.clientX - this._panStart.x;
         this.panY = e.clientY - this._panStart.y;
@@ -189,7 +251,7 @@ const Canvas = {
 
     document.addEventListener('mouseup', () => {
       if (this._dragging) {
-        this._dragging.classList.remove('dragging');
+        this._dragging.el.classList.remove('dragging');
         persistGraph();
         this._dragging = null;
         this.drawArrows();
@@ -244,7 +306,12 @@ const Canvas = {
   },
 
   startDrag(nodeEl, nodeData, clientX, clientY) {
-    this._dragging = nodeEl;
+    History.capture('Move node');
+    this._dragging = {
+      el: nodeEl,
+      id: nodeData.id,
+      selected: [...this._selectedNodes]
+    };
     nodeEl.classList.add('dragging');
     this._dragOffset.x = (clientX - this.panX) / this.scale - nodeData.x;
     this._dragOffset.y = (clientY - this.panY) / this.scale - nodeData.y;

@@ -58,6 +58,7 @@
         <div id="edit-tools">
           <button class="tool-btn" id="btn-connect" onclick="Canvas.toggleConnectMode()">↗ Draw Arrow</button>
           <button class="tool-btn" onclick="NodeModal.open()">＋ Add Card</button>
+          <button class="tool-btn" id="btn-select" onclick="Canvas.toggleSelectMode()">☐ Select</button>
           <div class="divider"></div>
         </div>
         <button class="tool-btn" onclick="Canvas.fitToScreen()">Fit</button>
@@ -193,7 +194,7 @@
       </div>
       <div class="modal-field">
         <label class="modal-label">Tag</label>
-        <input class="modal-input" id="node-tag-input" placeholder="COMP">
+        <input class="modal-input" id="node-tag-input" placeholder="COMP" maxlength="8">
       </div>
       <div class="modal-field">
         <label class="modal-label">File path (optional)</label>

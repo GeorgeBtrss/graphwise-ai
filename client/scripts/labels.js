@@ -34,6 +34,7 @@ const Labels = {
   },
 
   add() {
+    History.capture('Label change');
     const graph = getGraph();
     if (!graph) return;
 
@@ -79,6 +80,7 @@ const Labels = {
   },
 
   rename(id, name) {
+    History.capture('Label change');
     const graph = getGraph();
     const label   = graph?.labels.find(l => l.id === id);
     if (!label) return;
@@ -89,14 +91,57 @@ const Labels = {
   },
 
   delete(id) {
+    History.capture('Label change');
     const graph = getGraph();
+
     if (!graph) return;
-    const used = graph.nodes.some(n => n.labelId === id);
-    if (used && !confirm('This label is used by some cards. Delete anyway?')) return;
-    graph.labels = graph.labels.filter(c => c.id !== id);
-    graph.nodes.forEach(n => { if (n.labelId === id) n.labelId = graph.labels[0]?.id || null; });
+
+    // Prevent deleting the root node's label
+    const rootUsesLabel = graph.nodes.some(
+      n => n.isRoot && n.labelId === id
+    );
+
+    if (rootUsesLabel) {
+      showToast(
+        'This label is assigned to the root card. Assign the root card to another label before deleting it.'
+      );
+      return;
+    }
+
+    const used = graph.nodes.some(
+      n => n.labelId === id
+    );
+
+    if (
+      used &&
+      !confirm(
+        'This label is used by some cards. Delete anyway?'
+      )
+    ) {
+      return;
+    }
+
+    History.capture('Delete label');
+
+    // Remove label
+    graph.labels = graph.labels.filter(
+      l => l.id !== id
+    );
+
+    // Reassign affected nodes
+    const fallbackLabelId =
+      graph.labels[0]?.id || null;
+
+    graph.nodes.forEach(n => {
+      if (n.labelId === id) {
+        n.labelId = fallbackLabelId;
+      }
+    });
+
     persistGraph();
+
     this.render();
+
     Canvas.renderAll();
   },
 };

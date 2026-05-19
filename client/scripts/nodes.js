@@ -10,7 +10,14 @@ const Nodes = {
 
     const div = document.createElement('div');
     div.className = 'node';
+    if (Canvas._selectedNodes.has(n.id)) {
+      div.classList.add('selected');
+    }
     div.id        = n.id;
+
+    if (Canvas._selectedNodes.has(n.id)) {
+      div.classList.add('selected');
+    }
     div.style.cssText = `left:${n.x}px;top:${n.y}px;background:${t.bg};border-color:${t.border};box-shadow:0 4px 24px rgba(0,0,0,.35);`;
 
     const itemsHtml = (n.items || []).map((item, i) => `
@@ -57,11 +64,38 @@ const Nodes = {
       const isBtn      = e.target.classList.contains('node-action-btn');
       const isAddItem  = e.target.classList.contains('node-add-item');
       const isDelItem  = e.target.classList.contains('del-item');
+
       if (isEditable || isBtn || isAddItem || isDelItem) return;
+
       if (Editor.viewMode) return;
-      if (Canvas._connectMode) { e.stopPropagation(); Canvas.handleConnectClick(n.id, div); return; }
+
+      // ── SELECT MODE ─────────────────────
+      if (Canvas._selectMode) {
+        e.stopPropagation();
+
+        if (Canvas._selectedNodes.has(n.id)) {
+          Canvas._selectedNodes.delete(n.id);
+          div.classList.remove('selected');
+        } else {
+          Canvas._selectedNodes.add(n.id);
+          div.classList.add('selected');
+        }
+
+        Canvas.updateSelectionToolbar();
+        return;
+      }
+
+      // ── CONNECT MODE ────────────────────
+      if (Canvas._connectMode) {
+        e.stopPropagation();
+        Canvas.handleConnectClick(n.id, div);
+        return;
+      }
+
       if (e.button !== 0 || Canvas._ctrlDown) return;
+
       e.stopPropagation();
+
       Canvas.startDrag(div, n, e.clientX, e.clientY);
     });
 
@@ -85,6 +119,7 @@ const Nodes = {
   },
 
   addItem(nodeId) {
+    History.capture('Add item');
     const graph = getGraph();
     const n     = graph?.nodes.find(x => x.id === nodeId);
     if (!n) return;
@@ -99,6 +134,7 @@ const Nodes = {
   },
 
   deleteItem(nodeId, index) {
+    History.capture('Delete item');
     const graph = getGraph();
     const n     = graph?.nodes.find(x => x.id === nodeId);
     if (!n) return;
@@ -147,6 +183,7 @@ const NodeModal = {
   _buildLabelPicker() {
     const graph = getGraph();
     if (!graph) return;
+
 
     const el = document.getElementById('node-label-picker');
 
@@ -229,6 +266,8 @@ const NodeModal = {
     const file  = document.getElementById('node-file-input').value.trim();
     const graph = getGraph();
 
+    History.capture('add node')
+
     if (this._editingId) {
       const n = graph.nodes.find(x => x.id === this._editingId);
       if (n) { n.icon = icon; n.title = title; n.tag = tag; n.file = file; n.labelId = this._selectedLabelId; }
@@ -251,16 +290,43 @@ const NodeModal = {
 
   confirmDelete(id) {
     const graph = getGraph();
-    const n     = graph?.nodes.find(x => x.id === id);
+    const n = graph?.nodes.find(
+      x => x.id === id
+    );
     if (!n) return;
-    document.getElementById('confirm-node-name').textContent = n.title || 'Untitled Card';
-    document.getElementById('confirm-node-btn').onclick = () => {
-      graph.nodes  = graph.nodes.filter(x => x.id !== id);
-      graph.arrows = graph.arrows.filter(a => a.from !== id && a.to !== id);
+
+    // Prevent deleting root node
+    if (n.isRoot) {
+      showToast('Root card cannot be deleted');
+      return;
+    }
+
+    document.getElementById(
+      'confirm-node-name'
+    ).textContent =
+      n.title || 'Untitled Card';
+
+    document.getElementById(
+      'confirm-node-btn'
+    ).onclick = () => {
+
+      History.capture('Delete node');
+
+      graph.nodes = graph.nodes.filter(
+        x => x.id !== id
+      );
+
+      graph.arrows = graph.arrows.filter(
+        a => a.from !== id && a.to !== id
+      );
+
       persistGraph();
+
       Modals.close('modal-confirm-node');
+
       Canvas.renderAll();
     };
+
     Modals.open('modal-confirm-node');
   },
 };

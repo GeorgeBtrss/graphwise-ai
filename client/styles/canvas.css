@@ -87,6 +87,13 @@ svg.connections {
 .node-action-btn:hover     { color: var(--text); border-color: var(--accent); }
 .node-action-btn.del:hover { color: var(--danger); border-color: rgba(255,68,102,.4); }
 
+.node.selected {
+  border-color: var(--accent) !important;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 18px rgba(120,140,255,.35);
+}
+
 /* Arrow context menu */
 .arrow-menu {
   position: fixed; background: var(--surface);
@@ -130,20 +137,16 @@ svg.connections {
   box-shadow:
     0 4px 18px rgba(0,0,0,.22);
 }
-
 .toolbar-btn:hover {
   background: rgba(28,28,40,.98);
   border-color: var(--border2);
   color: var(--text); transform: translateY(-1px);
   box-shadow: 0 6px 24px rgba(0,0,0,.28);
 }
-
 .toolbar-btn:active { transform: scale(.96); }
-
 .toolbar-btn.disabled,
 .toolbar-btn:disabled {
   opacity: .45; cursor: default;
   pointer-events: none;
 }
 .toolbar-btn svg { width: 15px; height: 15px; }
-

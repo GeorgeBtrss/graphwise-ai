@@ -7,7 +7,8 @@ const Home = {
   _activeTab:      'graphs',
   _editingGraphId: null,
   _editingFolderId: null,
-  _selectedFolders: new Set(),
+  _selectedGraphs: new Set(),
+  _selectMode: false,
 
   render() {
     this._renderTab(this._activeTab);
@@ -53,13 +54,48 @@ const Home = {
 
     const cards = graphs.map(g => this._graphCard(g)).join('');
 
-    el.innerHTML = `<div class="home-section-title">All Graphs</div>
+    el.innerHTML = `
+      <div class="home-toolbar">
+        <button
+          class="btn-select-mode ${this._selectMode ? 'active' : ''}"
+          onclick="Home.toggleSelectMode()">
+          ${this._selectMode ? '✓ Selecting' : 'Select'}
+        </button>
+      </div>
+
+      <div class="home-section-title">All Graphs</div>
+
       <div class="graphs-grid">
         ${cards}
+
         <div class="new-graph-card" onclick="Home.createNewGraph()">
-          <div class="plus">✦</div><span>New Graph</span>
+          <div class="plus">✦</div>
+          <span>New Graph</span>
         </div>
-      </div>`;
+      </div>
+
+      ${this._renderSelectionBar()}
+    `;
+  },
+
+  _renderSelectionBar() {
+    if (!this._selectMode || !this._selectedGraphs.size) {
+      return '';
+    }
+
+    return `
+      <div class="selection-bar">
+        <div class="selection-count">
+          ${this._selectedGraphs.size} selected
+        </div>
+
+        <button
+          class="selection-btn danger"
+          onclick="Home.bulkDeleteGraphs()">
+          Delete
+        </button>
+      </div>
+    `;
   },
 
   // Shared card template used in both tabs
@@ -70,7 +106,14 @@ const Home = {
     const folderBadge = folder
       ? `<span class="graph-card-folder">📁 ${escHtml(folder.name)}</span>`
       : '';
-    return `<div class="graph-card" onclick="Home.open('${g.id}')">
+    const selected = this._selectedGraphs.has(g.id);
+
+    return `<div class="graph-card ${selected ? 'selected' : ''}"
+      onclick="
+        if (Home._selectMode) {
+          event.stopPropagation();
+          Home.toggleGraphSelection('${g.id}');
+        } else { Home.open('${g.id}'); }">
       <div class="graph-card-preview">${this._miniPreview(g)}</div>
       <div class="graph-card-body">
         <div class="graph-card-name">${escHtml(g.name || 'Untitled')}</div>
@@ -259,6 +302,21 @@ const Home = {
     Modals.open('modal-confirm-delete');
   },
 
+  async bulkDeleteGraphs() {
+    const ids = [...this._selectedGraphs];
+
+    graphs = graphs.filter(g => !ids.includes(g.id));
+
+    for (const id of ids) {
+      await Storage.deleteGraph(id);
+    }
+
+    this._selectedGraphs.clear();
+    this._selectMode = false;
+
+    this.render();
+  },
+
   // ── EDIT GRAPH ──────────────────────────────────
   editGraph(id) {
     const g = graphs.find(x => x.id === id); if (!g) return;
@@ -282,6 +340,26 @@ const Home = {
     Storage.saveGraph(g);
     Modals.close('modal-editgraph');
     this._editingGraphId = null;
+    this.render();
+  },
+
+  toggleSelectMode() {
+    this._selectMode = !this._selectMode;
+
+    if (!this._selectMode) {
+      this._selectedGraphs.clear();
+    }
+
+    this.render();
+  },
+
+  toggleGraphSelection(id) {
+    if (this._selectedGraphs.has(id)) {
+      this._selectedGraphs.delete(id);
+    } else {
+      this._selectedGraphs.add(id);
+    }
+
     this.render();
   },
 

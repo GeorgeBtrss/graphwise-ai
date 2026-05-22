@@ -150,3 +150,79 @@ svg.connections {
   pointer-events: none;
 }
 .toolbar-btn svg { width: 15px; height: 15px; }
+
+.selection-toolbar {
+  position: fixed;
+
+  left: 50%;
+  bottom: 18px;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding: 10px 14px;
+
+  border-radius: 14px;
+
+  background: rgba(12,12,18,.96);
+
+  border: 1px solid var(--border);
+
+  backdrop-filter: blur(16px);
+
+  z-index: 300;
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,.35);
+}
+
+.selection-toolbar.hidden {
+  display: none;
+}
+
+.selection-toolbar-left {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.selection-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selection-btn {
+  height: 30px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: rgba(24,24,34,.95);
+
+  color: var(--text);
+
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+
+  cursor: pointer;
+
+  transition:
+    background .12s,
+    border-color .12s,
+    color .12s;
+}
+
+.selection-btn:hover {
+  border-color: var(--accent);
+}
+
+.selection-btn.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}

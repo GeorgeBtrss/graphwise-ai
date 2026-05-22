@@ -55,12 +55,81 @@ const Canvas = {
     this.applyTransform();
   },
 
-  toggleSelectMode() {
-    this._selectMode = !this._selectMode;
+  bulkDelete() {
+    const graph = getGraph();
 
-    if (!this._selectMode) {
-      this._selectedNodes.clear();
-    }
+    if (!graph) return;
+
+    History.capture('Bulk delete');
+
+    graph.nodes = graph.nodes.filter(n => {
+      if (n.isRoot) return true;
+
+      return !this._selectedNodes.has(n.id);
+    });
+
+    graph.arrows = graph.arrows.filter(a => {
+      return (
+        !this._selectedNodes.has(a.from) &&
+        !this._selectedNodes.has(a.to)
+      );
+    });
+
+    this._selectedNodes.clear();
+
+    persistGraph();
+
+    this.updateSelectionToolbar();
+
+    this.renderAll();
+  },
+
+  bulkChangeTag() {
+    const tag = prompt('New tag');
+
+    if (tag === null) return;
+
+    const graph = getGraph();
+
+    History.capture('Bulk tag change');
+
+    graph.nodes.forEach(n => {
+      if (this._selectedNodes.has(n.id)) {
+        n.tag = tag;
+      }
+    });
+
+    persistGraph();
+
+    this.renderAll();
+  },
+
+  bulkChangeLabel() {
+    const graph = getGraph();
+
+    if (!graph?.labels?.length) return;
+
+    const names = graph.labels
+      .map((l,i) => `${i+1}. ${l.name}`)
+      .join('\n');
+
+    const idx = prompt(
+      `Choose label:\n\n${names}`
+    );
+
+    const label = graph.labels[parseInt(idx)-1];
+
+    if (!label) return;
+
+    History.capture('Bulk label change');
+
+    graph.nodes.forEach(n => {
+      if (this._selectedNodes.has(n.id)) {
+        n.labelId = label.id;
+      }
+    });
+
+    persistGraph();
 
     this.renderAll();
   },
@@ -157,6 +226,18 @@ const Canvas = {
     else this._clearConnectHL();
   },
 
+  toggleSelectMode() {
+    this._selectMode = !this._selectMode;
+
+    if (!this._selectMode) {
+      this._selectedNodes.clear();
+    }
+
+    this.updateSelectionToolbar();
+
+    this.renderAll();
+  },
+
   _clearConnectHL() {
     document.querySelectorAll('.node.connect-src,.node.connect-hover')
       .forEach(e => e.classList.remove('connect-src','connect-hover'));
@@ -174,6 +255,26 @@ const Canvas = {
       this._connectSrc = null;
       Arrows.openAddModal(from, nodeId);
     }
+  },
+
+  updateSelectionToolbar() {
+    const bar = document.getElementById('selection-toolbar');
+
+    if (!bar) return;
+
+    const count = this._selectedNodes.size;
+
+    if (!this._selectMode || count === 0) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    bar.classList.remove('hidden');
+
+    document.getElementById(
+      'selection-count'
+    ).textContent =
+      `${count} selected`;
   },
 
   init() {
@@ -307,13 +408,24 @@ const Canvas = {
 
   startDrag(nodeEl, nodeData, clientX, clientY) {
     History.capture('Move node');
+
+    const selected =
+      this._selectedNodes.has(nodeData.id)
+        ? [...this._selectedNodes]
+        : [nodeData.id];
+
     this._dragging = {
       el: nodeEl,
       id: nodeData.id,
-      selected: [...this._selectedNodes]
+      selected,
     };
+
     nodeEl.classList.add('dragging');
-    this._dragOffset.x = (clientX - this.panX) / this.scale - nodeData.x;
-    this._dragOffset.y = (clientY - this.panY) / this.scale - nodeData.y;
+
+    this._dragOffset.x =
+      (clientX - this.panX) / this.scale - nodeData.x;
+
+    this._dragOffset.y =
+      (clientY - this.panY) / this.scale - nodeData.y;
   },
 };

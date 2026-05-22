@@ -347,6 +347,36 @@
   </div>
 
   <div class="view-mode-banner">◎ View mode — click the pencil to edit</div>
+  <div
+    id="selection-toolbar"
+    class="selection-toolbar hidden">
+
+    <div class="selection-toolbar-left">
+      <span id="selection-count">0 selected</span>
+    </div>
+
+    <div class="selection-toolbar-actions">
+
+      <button
+        class="selection-btn"
+        onclick="Canvas.bulkChangeLabel()">
+        Label
+      </button>
+
+      <button
+        class="selection-btn"
+        onclick="Canvas.bulkChangeTag()">
+        Tag
+      </button>
+
+      <button
+        class="selection-btn danger"
+        onclick="Canvas.bulkDelete()">
+        Delete
+      </button>
+
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 
   <!-- ═══ SCRIPTS — order matters ═══ -->

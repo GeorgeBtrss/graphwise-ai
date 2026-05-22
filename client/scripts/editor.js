@@ -31,8 +31,19 @@ const Editor = {
 
   goHome() {
     this._flushInputs();
+
+    Canvas._selectMode = false;
+    Canvas._selectedNodes.clear();
+
+    const selectBtn = document.getElementById('btn-select');
+
+    if (selectBtn) {
+      selectBtn.classList.remove('active');
+    }
+
     document.getElementById('view-editor').classList.remove('active');
     document.getElementById('view-home').classList.remove('hidden');
+
     Home.render();
   },
 
